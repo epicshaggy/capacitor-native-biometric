@@ -16,13 +16,15 @@ public class NativeBiometric: CAPPlugin {
     @objc func isAvailable(_ call: CAPPluginCall) {
         var error: NSError?
         var obj = JSObject()
+        
         obj["has"] = false
-        obj["touchId"] = context.biometryType == .touchID
-        obj["faceId"] = context.biometryType == .faceID
         
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error){
             obj["has"] = true
         }
+        
+        obj["touchId"] = context.biometryType == .touchID
+        obj["faceId"] = context.biometryType == .faceID
         
         call.resolve(obj)
     }
@@ -33,8 +35,10 @@ public class NativeBiometric: CAPPlugin {
             
             if success {
                 call.resolve()
+            }else{
+                call.reject("Failed to authenticate")
             }
         }
-        call.reject("Failed")
+        
     }
 }
