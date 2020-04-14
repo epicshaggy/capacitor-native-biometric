@@ -32,4 +32,9 @@ NativeBiometric.verify().then(
 );
 ```
 
-... Unfinished
+## Methods
+
+| Method        | Default | Type                        | Description                                                    |
+| ------------- | ------- | --------------------------- | -------------------------------------------------------------- |
+| isAvailable() |         | `Promise<AvailableOptions>` | Checks if the device has fingerprint/touch id / faceid support |
+| verify()      |         | `Promise<any>`              | Shows the prompt                                               |
