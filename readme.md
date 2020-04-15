@@ -2,7 +2,7 @@
 
 ## Installation
 
-- `not yet available`
+- `npm i capacitor-native-biometric`
 
 ## Usage
 
