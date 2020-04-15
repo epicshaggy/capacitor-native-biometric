@@ -1,6 +1,7 @@
 package com.epicshaggy.biometric;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.biometric.BiometricPrompt;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 
@@ -29,7 +31,16 @@ public class AuthAcitivy extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth_acitivy);
 
-        executor = this.getMainExecutor();
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
+            executor = this.getMainExecutor();
+        }else{
+            executor = new Executor() {
+                @Override
+                public void execute(Runnable command) {
+                    new Handler().post(command);
+                }
+            };
+        }
 
         promptInfo = new BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Log in")
