@@ -6,12 +6,22 @@ declare module "@capacitor/core" {
 
 export interface AvailableOptions {
   has: boolean;
-  touchId: boolean;
-  faceId: boolean;
+  touchId: boolean; //iOS
+  faceId: boolean; //iOS
+  fingerprint: boolean; //Android
+  faceAuth: boolean; //Android
+  irisAuth: boolean; //Android
+}
+
+export interface BiometricOptions {
+  reason?: string;
+  title?: string;
+  subtitle?: string;
+  description?: string;
 }
 
 export interface NativeBiometricPlugin {
   isAvailable(): Promise<AvailableOptions>;
 
-  verify(): Promise<any>;
+  verify(options?: BiometricOptions): Promise<any>;
 }

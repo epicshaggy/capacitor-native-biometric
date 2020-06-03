@@ -2,6 +2,7 @@ package com.epicshaggy.biometric;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 
 import androidx.biometric.BiometricManager;
 import com.getcapacitor.JSObject;
@@ -17,6 +18,9 @@ public class NativeBiometric extends Plugin {
     private BiometricManager biometricManager;
     protected final static int AUTH_CODE = 0102;
 
+    private boolean hasFeature(String feature){
+       return getContext().getPackageManager().hasSystemFeature(feature);
+    }
     @PluginMethod()
     public void isAvailable(PluginCall call) {
         JSObject ret = new JSObject();
@@ -34,13 +38,26 @@ public class NativeBiometric extends Plugin {
 
         ret.put("touchId", false);
         ret.put("faceId", false);
+        ret.put("fingerprint", hasFeature(PackageManager.FEATURE_FINGERPRINT));
+        ret.put("faceAuth", hasFeature(PackageManager.FEATURE_FACE));
+        ret.put("irisAuth", hasFeature(PackageManager.FEATURE_IRIS));
         call.resolve(ret);
     }
 
     @PluginMethod()
     public void verify(final PluginCall call) {
-        saveCall(call);
         Intent intent = new Intent(getContext(), AuthAcitivy.class);
+
+        intent.putExtra("title", call.hasOption("title") ?
+                call.getString("title"):"Authenticate");
+
+        if(call.hasOption("subtitle"))
+            intent.putExtra("subtitle", call.getString("subtitle"));
+
+        if(call.hasOption("description"))
+            intent.putExtra("description", call.getString("description"));
+
+        saveCall(call);
         startActivityForResult(call, intent, AUTH_CODE);
     }
 

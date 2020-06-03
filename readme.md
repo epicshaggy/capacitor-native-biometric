@@ -34,10 +34,32 @@ NativeBiometric.verify().then(
 
 ## Methods
 
-| Method        | Default | Type                        | Description                                     |
-| ------------- | ------- | --------------------------- | ----------------------------------------------- |
-| isAvailable() |         | `Promise<AvailableOptions>` | Gets available biometrics has / touchI / faceId |
-| verify()      |         | `Promise<any>`              | Shows the prompt                                |
+| Method                             | Default | Type                        | Description               |
+| ---------------------------------- | ------- | --------------------------- | ------------------------- |
+| isAvailable()                      |         | `Promise<AvailableOptions>` | Gets available biometrics |
+| verify(options?: BiometricOptions) |         | `Promise<any>`              | Shows the prompt          |
+
+## Interfaces
+
+AvailableOptions
+
+| Properties  | Default | Type    | Description                                                       |
+| ----------- | ------- | ------- | ----------------------------------------------------------------- |
+| has         |         | boolean | Specifies if the devices has biometric enrollment                 |
+| touchId     |         | boolean | Specifies if the devices has TouchID (iOS)                        |
+| faceId      |         | boolean | Specifies if the devices has FaceID (iOS)                         |
+| fingerprint |         | boolean | Specifies if the devices has fingerprint authentication (Android) |
+| faceAuth    |         | boolean | Specifies if the devices has face authentication (Android)        |
+| irisAuth    |         | boolean | Specifies if the devices has iris authentication (Android)        |
+
+BiometricOptions
+
+| Properties   | Default                        | Type   | Description                                                                                               |
+| ------------ | ------------------------------ | ------ | --------------------------------------------------------------------------------------------------------- |
+| reason?      | "For biometric authentication" | string | Reason for requesting authentication in iOS. Displays in the authentication dialog presented to the user. |
+| title?       | "Authenticate"                 | string | Title for the Android prompt                                                                              |
+| subtitle?    |                                | string | Subtitle for the Android prompt                                                                           |
+| description? |                                | string | Description for the Android prompt                                                                        |
 
 ## Face ID (iOS)
 
@@ -56,6 +78,26 @@ To use android's BiometricPrompt api you must add the following permission to yo
 
 ```xml
 <uses-permission android:name="android.permission.USE_BIOMETRIC">
+```
+
+And register the plugin by adding it to you MainActivity's onCreate:
+
+```java
+import com.example.myapp.EchoPlugin;
+
+public class MainActivity extends BridgeActivity {
+  @Override
+  public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+
+    // Initializes the Bridge
+    this.init(savedInstanceState, new ArrayList<Class<? extends Plugin>>() {{
+      // Additional plugins you've installed go here
+      // Ex: add(TotallyAwesomePlugin.class);
+      add(NativeBiometric.class);
+    }});
+  }
+}
 ```
 
 ## Notes

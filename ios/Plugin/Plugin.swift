@@ -25,12 +25,16 @@ public class NativeBiometric: CAPPlugin {
         
         obj["touchId"] = context.biometryType == .touchID
         obj["faceId"] = context.biometryType == .faceID
+        obj["fingerprint"] = false
+        obj["faceAuth"] = false
+        obj["irisAuth"] = false
         
         call.resolve(obj)
     }
     
     @objc func verify(_ call: CAPPluginCall){
-        let reason = "For easy Log in"
+        let reason = call.getString("reason") ?? "For biometric authentication"
+        
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { (success, error) in
             
             if success {

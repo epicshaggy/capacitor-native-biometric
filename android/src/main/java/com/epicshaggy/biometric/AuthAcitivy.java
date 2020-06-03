@@ -44,6 +44,8 @@ public class AuthAcitivy extends AppCompatActivity {
 
         promptInfo = new BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Log in")
+                .setSubtitle(getIntent().hasExtra("subtitle") ? getIntent().getStringExtra("subtitles") : null)
+                .setDescription(getIntent().hasExtra("description") ? getIntent().getStringExtra("description") : null)
                 .setNegativeButtonText("Cancel")
                 .build();
 
@@ -51,21 +53,18 @@ public class AuthAcitivy extends AppCompatActivity {
             @Override
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
-                Log.i("bio", "Error");
                 finishActivity("error");
             }
 
             @Override
             public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
-                Log.i("bio", "success");
                 finishActivity("success");
             }
 
             @Override
             public void onAuthenticationFailed() {
                 super.onAuthenticationFailed();
-                Log.i("bio", "failed");
                 finishActivity("failed");
             }
         });
