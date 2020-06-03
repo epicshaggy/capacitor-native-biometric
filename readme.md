@@ -16,6 +16,9 @@ NativeBiometric.isAvailable().then(
     const has = result.has;
     const touchId = result.touchId;
     const faceId = result.faceId;
+    const fingerprint = result.fingerprint;
+    const faceAuth = result.faceAuth;
+    const irisAuth = result.irisAuth;
   },
   (error) => {
     //Couldn't check availability
@@ -23,7 +26,12 @@ NativeBiometric.isAvailable().then(
 );
 
 NativeBiometric.verify().then(
-  () => {
+  ({
+    reason: "For easy log in",
+    title: "Log in",
+    subtitle: "Maybe add subtitle here?",
+    description: "Maybe a description too?",
+  }) => {
     //Authentication successful
   },
   (error) => {
