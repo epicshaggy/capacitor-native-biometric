@@ -25,13 +25,13 @@ NativeBiometric.isAvailable().then(
   }
 );
 
-NativeBiometric.verify().then(
-  ({
-    reason: "For easy log in",
-    title: "Log in",
-    subtitle: "Maybe add subtitle here?",
-    description: "Maybe a description too?",
-  }) => {
+NativeBiometric.verify({
+  reason: "For easy log in",
+  title: "Log in",
+  subtitle: "Maybe add subtitle here?",
+  description: "Maybe a description too?",
+}).then(
+  () => {
     //Authentication successful
   },
   (error) => {
