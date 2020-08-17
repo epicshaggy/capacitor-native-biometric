@@ -141,7 +141,7 @@ To use android's BiometricPrompt api you must add the following permission to yo
 And register the plugin by adding it to you MainActivity's onCreate:
 
 ```java
-import com.example.myapp.EchoPlugin;
+import com.epicshaggy.biometric.NativeBiometric;
 
 public class MainActivity extends BridgeActivity {
   @Override
