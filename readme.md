@@ -1,5 +1,7 @@
 # Capacitor Native Biometric
 
+Use biometrics confirm device owner presence or authenticate users. A couple of methods are provided to handle user credentials. These are securely stored using Keychain (iOS) and Keystore (Android).
+
 ## Installation
 
 - `npm i capacitor-native-biometric`
@@ -11,54 +13,82 @@ import { Plugins } from "@capacitor/core";
 
 const { NativeBiometric } = Plugins;
 
-NativeBiometric.isAvailable().then(
+// Check if biometrics are available and which type is supported
+Plugins.NativeBiometric.isAvailable().then(
   (result) => {
-    const has = result.has;
-    const touchId = result.touchId;
-    const faceId = result.faceId;
-    const fingerprint = result.fingerprint;
-    const faceAuth = result.faceAuth;
-    const irisAuth = result.irisAuth;
+    const isAvailable = result.isAvailable;
+    const isFaceId = result.biometryType == BiometryType.FACE_ID;
+
+    if (isAvailable) {
+      // Get user's credentials
+      Plugins.NativeBiometric.getCredentials({
+        server: "www.example.com",
+      }).then((credentials: Credentials) => {
+        // Authenticate using biometrics before logging the user in
+        Plugins.NativeBiometric.verifyIdentity({
+          reason: "For easy log in",
+          title: "Log in",
+          subtitle: "Maybe add subtitle here?",
+          description: "Maybe a description too?",
+        }).then(
+          () => {
+            // Authentication successful
+            this.login(credentials.username, credentials.password);
+          },
+          (error) => {
+            // Failed to authenticate
+          }
+        );
+      });
+    }
   },
   (error) => {
-    //Couldn't check availability
+    // Couldn't check availability
   }
 );
 
-NativeBiometric.verify({
-  reason: "For easy log in",
-  title: "Log in",
-  subtitle: "Maybe add subtitle here?",
-  description: "Maybe a description too?",
-}).then(
-  () => {
-    //Authentication successful
-  },
-  (error) => {
-    //Failed to authenticate
-  }
-);
+// Save user's credentials
+Plugins.NativeBiometric.setCredentials({
+  username: "username",
+  password: "password",
+  server: "www.example.com",
+}).then();
+
+// Delete user's credentials
+Plugins.NativeBiometric.deleteCredentials({
+  server: "www.example.com",
+}).then();
 ```
 
 ## Methods
 
-| Method                             | Default | Type                        | Description               |
-| ---------------------------------- | ------- | --------------------------- | ------------------------- |
-| isAvailable()                      |         | `Promise<AvailableOptions>` | Gets available biometrics |
-| verify(options?: BiometricOptions) |         | `Promise<any>`              | Shows the prompt          |
+| Method                                              | Default | Type                        | Description                                                                                   |
+| --------------------------------------------------- | ------- | --------------------------- | --------------------------------------------------------------------------------------------- |
+| isAvailable()                                       |         | `Promise<AvailableOptions>` | Gets available biometrics                                                                     |
+| verifyIdentity(options?: BiometricOptions)          |         | `Promise<any>`              | Shows biometric prompt                                                                        |
+| setCredentials(options: SetCredentialOptions)       |         | `Promise<any>`              | Securely stores user's credentials in Keychain (iOS) or encypts them using Keystore (Android) |
+| getCredentials(options: GetCredentialOptions)       |         | `Promise<Credentials>`      | Retrieves user's credentials if any                                                           |
+| deleteCredentials(options: DeleteCredentialOptions) |         | `Promise<any>`              | Removes user's credentials if any                                                             |
 
 ## Interfaces
 
 AvailableOptions
 
-| Properties  | Default | Type    | Description                                                       |
-| ----------- | ------- | ------- | ----------------------------------------------------------------- |
-| has         |         | boolean | Specifies if the devices has biometric enrollment                 |
-| touchId     |         | boolean | Specifies if the devices has TouchID (iOS)                        |
-| faceId      |         | boolean | Specifies if the devices has FaceID (iOS)                         |
-| fingerprint |         | boolean | Specifies if the devices has fingerprint authentication (Android) |
-| faceAuth    |         | boolean | Specifies if the devices has face authentication (Android)        |
-| irisAuth    |         | boolean | Specifies if the devices has iris authentication (Android)        |
+| Properties   | Default | Type          | Description                                                 |
+| ------------ | ------- | ------------- | ----------------------------------------------------------- |
+| isAvailable  |         | boolean       | Specifies if the devices has biometric enrollment           |
+| biometryType |         | BiometricType | Specifies if the available biometric hardware on the device |
+
+BiometryType - enum
+
+| Properties          | Description                                |
+| ------------------- | ------------------------------------------ |
+| NONE                | There is no biometry available             |
+| TOUCH_ID            | TouchID is available (iOS)                 |
+| FACE_ID             | FaceID is available (iOS)                  |
+| FINGERPRINT         | Fingerprint is available (Android)         |
+| FACE_AUTHENTICATION | Face Authentication is available (Android) |
+| IRIS_AUTHENTICATION | Iris Authentication is available (Android) |
 
 BiometricOptions
 
@@ -68,6 +98,26 @@ BiometricOptions
 | title?       | "Authenticate"                 | string | Title for the Android prompt                                                                              |
 | subtitle?    |                                | string | Subtitle for the Android prompt                                                                           |
 | description? |                                | string | Description for the Android prompt                                                                        |
+
+SetCredentialOptions
+
+| Properties | Default | Type   | Description                                                                                                                                                             |
+| ---------- | ------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| username   |         | string | The string used as the alias at the time of loggin in. It doesn't have to be a username. For example if you're using email to log in your users then provide the email. |
+| password   |         | string | The users' password                                                                                                                                                     |
+| server     | string  |        | Any string to identify the credentials object with                                                                                                                      |
+
+GetCredentialOptions
+
+| Properties | Default | Type | Description                                                                     |
+| ---------- | ------- | ---- | ------------------------------------------------------------------------------- |
+| server     |         |      | The string used to identify the credentials object when setting the credentials |
+
+DeleteCredentialOptions
+
+| Properties | Default | Type | Description                                                                     |
+| ---------- | ------- | ---- | ------------------------------------------------------------------------------- |
+| server     |         |      | The string used to identify the credentials object when setting the credentials |
 
 ## Face ID (iOS)
 
@@ -110,4 +160,4 @@ public class MainActivity extends BridgeActivity {
 
 ## Notes
 
-I haven't been able to thoroughly test this plugin on devices running Android.
+Hasn't been tested on Android API level 22 or lower.

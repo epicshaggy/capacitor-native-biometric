@@ -3,13 +3,21 @@ declare module "@capacitor/core" {
         NativeBiometric: NativeBiometricPlugin;
     }
 }
-export interface AvailableOptions {
-    has: boolean;
-    touchId: boolean;
-    faceId: boolean;
-    fingerprint: boolean;
-    faceAuth: boolean;
-    irisAuth: boolean;
+export declare enum BiometryType {
+    NONE = 0,
+    TOUCH_ID = 1,
+    FACE_ID = 2,
+    FINGERPRINT = 3,
+    FACE_AUTHENTICATION = 4,
+    IRIS_AUTHENTICATION = 5
+}
+export interface Credentials {
+    username: string;
+    password: string;
+}
+export interface AvailableResult {
+    isAvailable: boolean;
+    biometryType: BiometryType;
 }
 export interface BiometricOptions {
     reason?: string;
@@ -17,7 +25,21 @@ export interface BiometricOptions {
     subtitle?: string;
     description?: string;
 }
+export interface GetCredentialOptions {
+    server: string;
+}
+export interface SetCredentialOptions {
+    username: string;
+    password: string;
+    server: string;
+}
+export interface DeleteCredentialOptions {
+    server: string;
+}
 export interface NativeBiometricPlugin {
-    isAvailable(): Promise<AvailableOptions>;
-    verify(options?: BiometricOptions): Promise<any>;
+    isAvailable(): Promise<AvailableResult>;
+    verifyIdentity(options?: BiometricOptions): Promise<any>;
+    getCredentials(options: GetCredentialOptions): Promise<Credentials>;
+    setCredentials(options: SetCredentialOptions): Promise<any>;
+    deleteCredentials(options: DeleteCredentialOptions): Promise<any>;
 }

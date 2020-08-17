@@ -1,5 +1,12 @@
 import { WebPlugin } from "@capacitor/core";
-import { NativeBiometricPlugin, AvailableOptions } from "./definitions";
+import {
+  NativeBiometricPlugin,
+  AvailableResult,
+  BiometricOptions,
+  GetCredentialOptions,
+  SetCredentialOptions,
+  DeleteCredentialOptions,
+} from "./definitions";
 
 export class NativeBiometricWeb extends WebPlugin
   implements NativeBiometricPlugin {
@@ -9,13 +16,31 @@ export class NativeBiometricWeb extends WebPlugin
       platforms: ["web"],
     });
   }
-
-  async isAvailable(): Promise<AvailableOptions> {
-    return new Promise(() => {});
+  isAvailable(): Promise<AvailableResult> {
+    throw new Error("Method not implemented");
   }
 
-  async verify(): Promise<any> {
-    return new Promise(() => {});
+  verifyIdentity(options?: BiometricOptions): Promise<any> {
+    console.log(options);
+
+    throw new Error("Method not implemented.");
+  }
+  getCredentials(
+    options: GetCredentialOptions
+  ): Promise<import("./definitions").Credentials> {
+    console.log(options);
+
+    throw new Error("Method not implemented.");
+  }
+  setCredentials(options: SetCredentialOptions): Promise<any> {
+    console.log(options);
+
+    throw new Error("Method not implemented.");
+  }
+  deleteCredentials(options: DeleteCredentialOptions): Promise<any> {
+    console.log(options);
+
+    throw new Error("Method not implemented.");
   }
 }
 
