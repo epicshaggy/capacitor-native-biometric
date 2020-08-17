@@ -15,7 +15,7 @@ const { NativeBiometric } = Plugins;
 
 // Check if biometrics are available and which type is supported
 Plugins.NativeBiometric.isAvailable().then(
-  (result) => {
+  (result: AvailableResult) => {
     const isAvailable = result.isAvailable;
     const isFaceId = result.biometryType == BiometryType.FACE_ID;
 
@@ -105,19 +105,19 @@ SetCredentialOptions
 | ---------- | ------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | username   |         | string | The string used as the alias at the time of loggin in. It doesn't have to be a username. For example if you're using email to log in your users then provide the email. |
 | password   |         | string | The users' password                                                                                                                                                     |
-| server     | string  |        | Any string to identify the credentials object with                                                                                                                      |
+| server     |         | string | Any string to identify the credentials object with                                                                                                                      |
 
 GetCredentialOptions
 
-| Properties | Default | Type | Description                                                                     |
-| ---------- | ------- | ---- | ------------------------------------------------------------------------------- |
-| server     |         |      | The string used to identify the credentials object when setting the credentials |
+| Properties | Default | Type   | Description                                                                     |
+| ---------- | ------- | ------ | ------------------------------------------------------------------------------- |
+| server     |         | string | The string used to identify the credentials object when setting the credentials |
 
 DeleteCredentialOptions
 
-| Properties | Default | Type | Description                                                                     |
-| ---------- | ------- | ---- | ------------------------------------------------------------------------------- |
-| server     |         |      | The string used to identify the credentials object when setting the credentials |
+| Properties | Default | Type   | Description                                                                     |
+| ---------- | ------- | ------ | ------------------------------------------------------------------------------- |
+| server     |         | string | The string used to identify the credentials object when setting the credentials |
 
 ## Face ID (iOS)
 
