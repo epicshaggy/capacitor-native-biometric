@@ -6,7 +6,6 @@ import {
   GetCredentialOptions,
   SetCredentialOptions,
   DeleteCredentialOptions,
-  NotImplementedError,
 } from "./definitions";
 
 export class NativeBiometricWeb extends WebPlugin
@@ -18,30 +17,30 @@ export class NativeBiometricWeb extends WebPlugin
     });
   }
   isAvailable(): Promise<AvailableResult> {
-    throw new NotImplementedError("Method not implemented.");
+    throw new Error("Method not implemented.");
   }
 
   verifyIdentity(options?: BiometricOptions): Promise<any> {
     console.log(options);
 
-    throw new NotImplementedError("Method not implemented.");
+    throw new Error("Method not implemented.");
   }
   getCredentials(
     options: GetCredentialOptions
   ): Promise<import("./definitions").Credentials> {
     console.log(options);
 
-    throw new NotImplementedError("Method not implemented.");
+    throw new Error("Method not implemented.");
   }
   setCredentials(options: SetCredentialOptions): Promise<any> {
     console.log(options);
 
-    throw new NotImplementedError("Method not implemented.");
+    throw new Error("Method not implemented.");
   }
   deleteCredentials(options: DeleteCredentialOptions): Promise<any> {
     console.log(options);
 
-    throw new NotImplementedError("Method not implemented.");
+    throw new Error("Method not implemented.");
   }
 }
 

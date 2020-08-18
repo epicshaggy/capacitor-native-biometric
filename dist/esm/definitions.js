@@ -1,9 +1,3 @@
-export class NotImplementedError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = "Not implemented error";
-    }
-}
 export var BiometryType;
 (function (BiometryType) {
     BiometryType[BiometryType["NONE"] = 0] = "NONE";

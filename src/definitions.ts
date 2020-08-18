@@ -4,12 +4,6 @@ declare module "@capacitor/core" {
   }
 }
 
-export class NotImplementedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "Not implemented error";
-  }
-}
 export enum BiometryType {
   NONE,
   TOUCH_ID,
