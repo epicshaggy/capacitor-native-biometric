@@ -1,3 +1,4 @@
+import { NotImplementedError } from "./NotImplementedError";
 import { WebPlugin } from "@capacitor/core";
 import {
   NativeBiometricPlugin,
@@ -17,30 +18,30 @@ export class NativeBiometricWeb extends WebPlugin
     });
   }
   isAvailable(): Promise<AvailableResult> {
-    throw new Error("Method not implemented");
+    throw new NotImplementedError("Method not implemented.");
   }
 
   verifyIdentity(options?: BiometricOptions): Promise<any> {
     console.log(options);
 
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError("Method not implemented.");
   }
   getCredentials(
     options: GetCredentialOptions
   ): Promise<import("./definitions").Credentials> {
     console.log(options);
 
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError("Method not implemented.");
   }
   setCredentials(options: SetCredentialOptions): Promise<any> {
     console.log(options);
 
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError("Method not implemented.");
   }
   deleteCredentials(options: DeleteCredentialOptions): Promise<any> {
     console.log(options);
 
-    throw new Error("Method not implemented.");
+    throw new NotImplementedError("Method not implemented.");
   }
 }
 
