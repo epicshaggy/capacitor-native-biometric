@@ -1,4 +1,5 @@
 import { WebPlugin } from "@capacitor/core";
+import { NotImplementedError, } from "./definitions";
 export class NativeBiometricWeb extends WebPlugin {
     constructor() {
         super({
@@ -7,23 +8,23 @@ export class NativeBiometricWeb extends WebPlugin {
         });
     }
     isAvailable() {
-        throw new Error("Method not implemented");
+        throw new NotImplementedError("Method not implemented.");
     }
     verifyIdentity(options) {
         console.log(options);
-        throw new Error("Method not implemented.");
+        throw new NotImplementedError("Method not implemented.");
     }
     getCredentials(options) {
         console.log(options);
-        throw new Error("Method not implemented.");
+        throw new NotImplementedError("Method not implemented.");
     }
     setCredentials(options) {
         console.log(options);
-        throw new Error("Method not implemented.");
+        throw new NotImplementedError("Method not implemented.");
     }
     deleteCredentials(options) {
         console.log(options);
-        throw new Error("Method not implemented.");
+        throw new NotImplementedError("Method not implemented.");
     }
 }
 const NativeBiometric = new NativeBiometricWeb();

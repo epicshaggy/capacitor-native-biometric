@@ -3,6 +3,9 @@ declare module "@capacitor/core" {
         NativeBiometric: NativeBiometricPlugin;
     }
 }
+export declare class NotImplementedError extends Error {
+    constructor(message: string);
+}
 export declare enum BiometryType {
     NONE = 0,
     TOUCH_ID = 1,
