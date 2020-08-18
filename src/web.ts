@@ -1,4 +1,3 @@
-import { NotImplementedError } from "./NotImplementedError";
 import { WebPlugin } from "@capacitor/core";
 import {
   NativeBiometricPlugin,
@@ -7,6 +6,7 @@ import {
   GetCredentialOptions,
   SetCredentialOptions,
   DeleteCredentialOptions,
+  NotImplementedError,
 } from "./definitions";
 
 export class NativeBiometricWeb extends WebPlugin
