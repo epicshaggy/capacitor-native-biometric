@@ -1,6 +1,8 @@
 package com.epicshaggy.biometric;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AppComponentFactory;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,6 +15,7 @@ import android.util.Base64;
 
 
 import androidx.biometric.BiometricManager;
+import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
@@ -83,38 +86,46 @@ public class NativeBiometric extends Plugin {
 
     @PluginMethod()
     public void isAvailable(PluginCall call) {
-        JSObject ret = new JSObject();
+        if(hasPermission(Manifest.permission.USE_BIOMETRIC)){
+            JSObject ret = new JSObject();
 
-        biometricManager = BiometricManager.from(getContext());
+            biometricManager = BiometricManager.from(getContext());
 
-        switch (biometricManager.canAuthenticate()) {
-            case BiometricManager.BIOMETRIC_SUCCESS:
-                ret.put("isAvailable", true);
-                break;
-            default:
-                ret.put("isAvailable", false);
-                break;
+            switch (biometricManager.canAuthenticate()) {
+                case BiometricManager.BIOMETRIC_SUCCESS:
+                    ret.put("isAvailable", true);
+                    break;
+                default:
+                    ret.put("isAvailable", false);
+                    break;
+            }
+
+
+            ret.put("biometryType", getAvailableFeature());
+            call.resolve(ret);
+        } else {
+            call.reject("Missing permission");
         }
-
-
-        ret.put("biometryType", getAvailableFeature());
-        call.resolve(ret);
     }
 
     @PluginMethod()
     public void verifyIdentity(final PluginCall call) {
-        Intent intent = new Intent(getContext(), AuthAcitivy.class);
+        if(hasPermission(Manifest.permission.USE_BIOMETRIC)){
+            Intent intent = new Intent(getContext(), AuthAcitivy.class);
 
-        intent.putExtra("title", call.getString("title", "Authenticate"));
+            intent.putExtra("title", call.getString("title", "Authenticate"));
 
-        if(call.hasOption("subtitle"))
-            intent.putExtra("subtitle", call.getString("subtitle"));
+            if(call.hasOption("subtitle"))
+                intent.putExtra("subtitle", call.getString("subtitle"));
 
-        if(call.hasOption("description"))
-            intent.putExtra("description", call.getString("description"));
+            if(call.hasOption("description"))
+                intent.putExtra("description", call.getString("description"));
 
-        saveCall(call);
-        startActivityForResult(call, intent, AUTH_CODE);
+            saveCall(call);
+            startActivityForResult(call, intent, AUTH_CODE);
+        }else{
+            call.reject("Missing permission");
+        }
     }
 
     @PluginMethod()
@@ -346,5 +357,4 @@ public class NativeBiometric extends Plugin {
         }
         return bytes;
     }
-
 }
