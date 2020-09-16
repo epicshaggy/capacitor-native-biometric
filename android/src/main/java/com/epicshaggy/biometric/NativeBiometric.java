@@ -86,31 +86,26 @@ public class NativeBiometric extends Plugin {
 
     @PluginMethod()
     public void isAvailable(PluginCall call) {
-        if(hasPermission(Manifest.permission.USE_BIOMETRIC)){
-            JSObject ret = new JSObject();
+        JSObject ret = new JSObject();
 
-            biometricManager = BiometricManager.from(getContext());
+        biometricManager = BiometricManager.from(getContext());
 
-            switch (biometricManager.canAuthenticate()) {
-                case BiometricManager.BIOMETRIC_SUCCESS:
-                    ret.put("isAvailable", true);
-                    break;
-                default:
-                    ret.put("isAvailable", false);
-                    break;
-            }
-
-
-            ret.put("biometryType", getAvailableFeature());
-            call.resolve(ret);
-        } else {
-            call.reject("Missing permission");
+        switch (biometricManager.canAuthenticate()) {
+            case BiometricManager.BIOMETRIC_SUCCESS:
+                ret.put("isAvailable", true);
+                break;
+            default:
+                ret.put("isAvailable", false);
+                break;
         }
+
+
+        ret.put("biometryType", getAvailableFeature());
+        call.resolve(ret);
     }
 
     @PluginMethod()
     public void verifyIdentity(final PluginCall call) {
-        if(hasPermission(Manifest.permission.USE_BIOMETRIC)){
             Intent intent = new Intent(getContext(), AuthAcitivy.class);
 
             intent.putExtra("title", call.getString("title", "Authenticate"));
@@ -123,9 +118,7 @@ public class NativeBiometric extends Plugin {
 
             saveCall(call);
             startActivityForResult(call, intent, AUTH_CODE);
-        }else{
-            call.reject("Missing permission");
-        }
+
     }
 
     @PluginMethod()
