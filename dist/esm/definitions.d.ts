@@ -24,6 +24,7 @@ export interface BiometricOptions {
     title?: string;
     subtitle?: string;
     description?: string;
+    negativeButtonText?: string;
 }
 export interface GetCredentialOptions {
     server: string;

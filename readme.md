@@ -92,12 +92,13 @@ BiometryType - enum
 
 BiometricOptions
 
-| Properties   | Default                        | Type   | Description                                                                                               |
-| ------------ | ------------------------------ | ------ | --------------------------------------------------------------------------------------------------------- |
-| reason?      | "For biometric authentication" | string | Reason for requesting authentication in iOS. Displays in the authentication dialog presented to the user. |
-| title?       | "Authenticate"                 | string | Title for the Android prompt                                                                              |
-| subtitle?    |                                | string | Subtitle for the Android prompt                                                                           |
-| description? |                                | string | Description for the Android prompt                                                                        |
+| Properties          | Default                        | Type   | Description                                                                                               |
+| ------------------- | ------------------------------ | ------ | --------------------------------------------------------------------------------------------------------- |
+| reason?             | "For biometric authentication" | string | Reason for requesting authentication in iOS. Displays in the authentication dialog presented to the user. |
+| title?              | "Authenticate"                 | string | Title for the Android prompt                                                                              |
+| subtitle?           |                                | string | Subtitle for the Android prompt                                                                           |
+| description?        |                                | string | Description for the Android prompt                                                                        |
+| negativeButtonText? | "Cancel"                       | string | Text for the negative button displayed on Android                                                         |
 
 SetCredentialOptions
 
