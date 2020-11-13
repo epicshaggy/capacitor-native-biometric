@@ -46,7 +46,7 @@ public class AuthAcitivy extends AppCompatActivity {
                 .setTitle(getIntent().hasExtra("title") ? getIntent().getStringExtra("title") : "Authenticate")
                 .setSubtitle(getIntent().hasExtra("subtitle") ? getIntent().getStringExtra("subtitle") : null)
                 .setDescription(getIntent().hasExtra("description") ? getIntent().getStringExtra("description") : null)
-                .setNegativeButtonText("Cancel")
+                .setNegativeButtonText(getIntent().hasExtra("negativeButtonText") ? getIntent().getStringExtra("negativeButtonText") : "Cancel")
                 .build();
 
         biometricPrompt = new BiometricPrompt(this, executor, new BiometricPrompt.AuthenticationCallback() {

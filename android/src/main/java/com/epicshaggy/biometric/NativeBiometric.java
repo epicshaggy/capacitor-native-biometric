@@ -116,6 +116,9 @@ public class NativeBiometric extends Plugin {
             if(call.hasOption("description"))
                 intent.putExtra("description", call.getString("description"));
 
+            if(call.hasOption("negativeButtonText"))
+                intent.putExtra("negativeButtonText", call.getString("negativeButtonText"));
+
             saveCall(call);
             startActivityForResult(call, intent, AUTH_CODE);
 
