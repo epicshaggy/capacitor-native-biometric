@@ -22,10 +22,10 @@ public class NativeBiometric: CAPPlugin {
         case unhandledError(status: OSStatus)
     }
     
-    var context = LAContext()
     typealias JSObject = [String:Any]
     
     @objc func isAvailable(_ call: CAPPluginCall) {
+        let context = LAContext()
         var error: NSError?
         var obj = JSObject()
         
@@ -48,6 +48,7 @@ public class NativeBiometric: CAPPlugin {
     }
     
     @objc func verifyIdentity(_ call: CAPPluginCall){
+        let context = LAContext()
         var canEvaluateError: NSError?
         
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &canEvaluateError){
