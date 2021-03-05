@@ -21,18 +21,18 @@ export class NativeBiometricWeb
     throw new Error("Method not implemented.");
   }
 
-  verifyIdentity(options?: BiometricOptions): Promise<any> {
+  verifyIdentity(_options?: BiometricOptions): Promise<any> {
     throw new Error("Method not implemented.");
   }
   getCredentials(
-    options: GetCredentialOptions
+    _options: GetCredentialOptions
   ): Promise<import("./definitions").Credentials> {
     throw new Error("Method not implemented.");
   }
-  setCredentials(options: SetCredentialOptions): Promise<any> {
+  setCredentials(_options: SetCredentialOptions): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  deleteCredentials(options: DeleteCredentialOptions): Promise<any> {
+  deleteCredentials(_options: DeleteCredentialOptions): Promise<any> {
     throw new Error("Method not implemented.");
   }
 }

@@ -10,19 +10,15 @@ export class NativeBiometricWeb extends WebPlugin {
         throw new Error("Method not implemented.");
     }
     verifyIdentity(options) {
-        console.log(options);
         throw new Error("Method not implemented.");
     }
     getCredentials(options) {
-        console.log(options);
         throw new Error("Method not implemented.");
     }
     setCredentials(options) {
-        console.log(options);
         throw new Error("Method not implemented.");
     }
     deleteCredentials(options) {
-        console.log(options);
         throw new Error("Method not implemented.");
     }
 }
