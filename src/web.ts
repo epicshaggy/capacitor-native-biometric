@@ -8,7 +8,8 @@ import {
   DeleteCredentialOptions,
 } from "./definitions";
 
-export class NativeBiometricWeb extends WebPlugin
+export class NativeBiometricWeb
+  extends WebPlugin
   implements NativeBiometricPlugin {
   constructor() {
     super({
@@ -21,25 +22,17 @@ export class NativeBiometricWeb extends WebPlugin
   }
 
   verifyIdentity(options?: BiometricOptions): Promise<any> {
-    console.log(options);
-
     throw new Error("Method not implemented.");
   }
   getCredentials(
     options: GetCredentialOptions
   ): Promise<import("./definitions").Credentials> {
-    console.log(options);
-
     throw new Error("Method not implemented.");
   }
   setCredentials(options: SetCredentialOptions): Promise<any> {
-    console.log(options);
-
     throw new Error("Method not implemented.");
   }
   deleteCredentials(options: DeleteCredentialOptions): Promise<any> {
-    console.log(options);
-
     throw new Error("Method not implemented.");
   }
 }
