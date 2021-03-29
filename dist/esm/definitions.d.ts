@@ -1,8 +1,3 @@
-declare module "@capacitor/core" {
-    interface PluginRegistry {
-        NativeBiometric: NativeBiometricPlugin;
-    }
-}
 export declare enum BiometryType {
     NONE = 0,
     TOUCH_ID = 1,

@@ -1,6 +1,6 @@
 {
   "name": "capacitor-native-biometric",
-  "version": "2.0.8",
+  "version": "2.1.0",
   "description": "This plugin gives access to the native biometric apis for android and iOS",
   "main": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
@@ -13,13 +13,13 @@
   "author": "Jose Martinez",
   "license": "MIT",
   "dependencies": {
-    "@capacitor/core": "latest"
+    "@capacitor/core": "next"
   },
   "devDependencies": {
+    "@capacitor/android": "next",
+    "@capacitor/ios": "next",
     "rimraf": "^3.0.0",
-    "typescript": "^3.2.4",
-    "@capacitor/ios": "latest",
-    "@capacitor/android": "latest"
+    "typescript": "^3.2.4"
   },
   "files": [
     "dist/",
