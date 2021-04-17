@@ -100,6 +100,20 @@ BiometricOptions
 | description?        |                                | string | Description for the Android prompt                                                                        |
 | negativeButtonText? | "Cancel"                       | string | Text for the negative button displayed on Android                                                         |
 
+VerifyIdentityErrors
+
+| code | Description                     |
+| ---- | ------------------------------- |
+| "0"  | Biometrics error or unavailable |
+| "10" | authenticationFailed            |
+| "11" | appCancel                       |
+| "12" | invalidContext                  |
+| "13" | notInteractive                  |
+| "14" | passcodeNotSet                  |
+| "15" | systemCancel                    |
+| "16" | userCancel                      |
+| "17" | userFallback                    |
+
 SetCredentialOptions
 
 | Properties | Default | Type   | Description                                                                                                                                                             |
