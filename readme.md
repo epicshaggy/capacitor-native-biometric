@@ -176,6 +176,7 @@ public class MainActivity extends BridgeActivity {
 ## Contributors
 
 [Jonthia](https://github.com/jonthia)
+[One Click Web Studio](https://github.com/oneclickwebstudio)
 
 ## Notes
 
