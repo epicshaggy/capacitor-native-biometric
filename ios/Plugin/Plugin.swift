@@ -51,16 +51,53 @@ public class NativeBiometric: CAPPlugin {
         let context = LAContext()
         var canEvaluateError: NSError?
         
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &canEvaluateError){
+        if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &canEvaluateError){
             
             let reason = call.getString("reason") ?? "For biometric authentication"
             
-            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { (success, evaluateError) in
+            context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { (success, evaluateError) in
                 
                 if success {
                     call.resolve()
                 }else{
-                    call.reject("Failed to authenticate")
+                    var errorCode = "0"
+                    guard let error = evaluateError
+                    else {
+                        call.reject("Biometrics Error", "0")
+                        return
+                    }
+
+                    switch error._code {
+
+                        case LAError.authenticationFailed.rawValue:
+                            errorCode = "10"
+
+                        case LAError.appCancel.rawValue:
+                            errorCode = "11"
+
+                        case LAError.invalidContext.rawValue:
+                            errorCode = "12"
+
+                        case LAError.notInteractive.rawValue:
+                            errorCode = "13"
+
+                        case LAError.passcodeNotSet.rawValue:
+                            errorCode = "14"
+
+                        case LAError.systemCancel.rawValue:
+                            errorCode = "15"
+
+                        case LAError.userCancel.rawValue:
+                            errorCode = "16"
+
+                        case LAError.userFallback.rawValue:
+                            errorCode = "17"
+
+                        default:
+                            errorCode = "0" // Biometrics unavailable
+                    }
+                
+                    call.reject(error.localizedDescription, errorCode, error)
                 }
                 
             }
