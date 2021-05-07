@@ -173,6 +173,10 @@ public class MainActivity extends BridgeActivity {
 }
 ```
 
+## Contributors
+
+[Jonthia](https://github.com/jonthia)
+
 ## Notes
 
 Hasn't been tested on Android API level 22 or lower.
