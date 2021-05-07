@@ -36,10 +36,3 @@ export class NativeBiometricWeb
     throw new Error("Method not implemented.");
   }
 }
-
-const NativeBiometric = new NativeBiometricWeb();
-
-export { NativeBiometric };
-
-import { registerWebPlugin } from "@capacitor/core";
-registerWebPlugin(NativeBiometric);

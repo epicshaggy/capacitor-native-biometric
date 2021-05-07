@@ -15,6 +15,7 @@ import android.util.Base64;
 import android.util.Log;
 
 
+import androidx.activity.result.ActivityResult;
 import androidx.biometric.BiometricManager;
 import androidx.core.content.ContextCompat;
 
@@ -23,6 +24,8 @@ import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
+import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,11 +53,11 @@ import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
-@NativePlugin(requestCodes = {NativeBiometric.AUTH_CODE})
+@CapacitorPlugin(name = "NativeBiometric")
 public class NativeBiometric extends Plugin {
 
     private BiometricManager biometricManager;
-    protected final static int AUTH_CODE = 0102;
+    //protected final static int AUTH_CODE = 0102;
 
     private static final int NONE = 0;
     private static final int FINGERPRINT = 3;
@@ -120,7 +123,7 @@ public class NativeBiometric extends Plugin {
                 intent.putExtra("negativeButtonText", call.getString("negativeButtonText"));
 
             saveCall(call);
-            startActivityForResult(call, intent, AUTH_CODE);
+            startActivityForResult(call, intent, "verifyResult");
 
     }
 
@@ -176,24 +179,21 @@ public class NativeBiometric extends Plugin {
         }
     }
 
-    @Override
-    protected void handleOnActivityResult(int requestCode, int resultCode, Intent data) {
-        super.handleOnActivityResult(requestCode, resultCode, data);
-        PluginCall call = getSavedCall();
-        if(requestCode == AUTH_CODE){
-            if(resultCode == Activity.RESULT_OK){
-                if(data.hasExtra("result")){
-                    switch (data.getStringExtra("result")){
-                        case "success":
-                            call.resolve();
-                            break;
-                        case "failed":
-                            call.reject("Verification failed", "10");
-                            break;
-                        default:
-                            call.reject("Verification error", "0");
-                            break;
-                    }
+    @ActivityCallback
+    private void verifyResult(PluginCall call, ActivityResult result){
+        if(result.getResultCode() == Activity.RESULT_OK){
+            Intent data = result.getData();
+            if(data.hasExtra("result")){
+                switch (data.getStringExtra("result")){
+                    case "success":
+                        call.resolve();
+                        break;
+                    case "failed":
+                        call.reject("Verification failed", "10");
+                        break;
+                    default:
+                        call.reject("Verification error", "0");
+                        break;
                 }
             }
         }
