@@ -12,6 +12,7 @@ import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+import android.util.Log;
 
 
 import androidx.biometric.BiometricManager;
@@ -74,11 +75,10 @@ public class NativeBiometric extends Plugin {
     private int getAvailableFeature() {
         if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
             return FINGERPRINT;
-        } else if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FACE)) {
+        } if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FACE)) {
             return FACE_AUTHENTICATION;
         } else if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_IRIS)) {
             return IRIS_AUTHENTICATION;
-
         } else {
             return NONE;
         }
