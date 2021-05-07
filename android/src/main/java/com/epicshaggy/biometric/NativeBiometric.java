@@ -187,15 +187,12 @@ public class NativeBiometric extends Plugin {
                         case "success":
                             call.resolve();
                             break;
+                        case "failed":
+                            call.reject("Verification failed", "10");
+                            break;
                         default:
-                            call.reject("Failed to authenticate");
+                            call.reject("Verification error", "0");
                             break;
-                        /*case "failed":
-                            call.reject("Failed to authenticate");
-                            break;
-                        case "error":
-                            call.error("");
-                            break;*/
                     }
                 }
             }
