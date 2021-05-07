@@ -4,7 +4,8 @@ Use biometrics confirm device owner presence or authenticate users. A couple of 
 
 ## Installation
 
-- `npm i capacitor-native-biometric`
+- `npm i capacitor-native-biometric@2.1.0`
+- For Capacitor v3 `npm i capacitor-native-biometric@2.1.1-cap3.0`
 
 ## Usage
 
