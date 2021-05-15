@@ -31,6 +31,7 @@ Plugins.NativeBiometric.isAvailable().then(
           title: "Log in",
           subtitle: "Maybe add subtitle here?",
           description: "Maybe a description too?",
+          retries: 5,
         }).then(
           () => {
             // Authentication successful
@@ -100,6 +101,7 @@ BiometricOptions
 | subtitle?           |                                | string | Subtitle for the Android prompt                                                                           |
 | description?        |                                | string | Description for the Android prompt                                                                        |
 | negativeButtonText? | "Cancel"                       | string | Text for the negative button displayed on Android                                                         |
+| retires?            | 5                              | number | Number of possible retries for the Android prompt                                                         |
 
 VerifyIdentityErrors
 
