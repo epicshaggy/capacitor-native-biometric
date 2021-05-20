@@ -13,11 +13,11 @@
   "author": "Jose Martinez",
   "license": "MIT",
   "dependencies": {
-    "@capacitor/core": "next"
+    "@capacitor/core": "3.0.0"
   },
   "devDependencies": {
-    "@capacitor/android": "next",
-    "@capacitor/ios": "next",
+    "@capacitor/android": "3.0.0",
+    "@capacitor/ios": "3.0.0",
     "rimraf": "^3.0.0",
     "typescript": "^3.2.4"
   },
