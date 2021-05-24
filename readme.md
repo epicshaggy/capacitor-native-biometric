@@ -2,30 +2,28 @@
 
 Use biometrics confirm device owner presence or authenticate users. A couple of methods are provided to handle user credentials. These are securely stored using Keychain (iOS) and Keystore (Android).
 
-## Installation
+## Installation (Only supports Capacitor 3)
 
-- `npm i capacitor-native-biometric
+- `npm i capacitor-native-biometric`
 
 ## Usage
 
 ```ts
-import { Plugins } from "@capacitor/core";
-
-const { NativeBiometric } = Plugins;
+import { NativeBiometric } from "capaitor-native-biometric";
 
 // Check if biometrics are available and which type is supported
-Plugins.NativeBiometric.isAvailable().then(
+NativeBiometric.isAvailable().then(
   (result: AvailableResult) => {
     const isAvailable = result.isAvailable;
     const isFaceId = result.biometryType == BiometryType.FACE_ID;
 
     if (isAvailable) {
       // Get user's credentials
-      Plugins.NativeBiometric.getCredentials({
+      NativeBiometric.getCredentials({
         server: "www.example.com",
       }).then((credentials: Credentials) => {
         // Authenticate using biometrics before logging the user in
-        Plugins.NativeBiometric.verifyIdentity({
+        NativeBiometric.verifyIdentity({
           reason: "For easy log in",
           title: "Log in",
           subtitle: "Maybe add subtitle here?",
@@ -48,14 +46,14 @@ Plugins.NativeBiometric.isAvailable().then(
 );
 
 // Save user's credentials
-Plugins.NativeBiometric.setCredentials({
+NativeBiometric.setCredentials({
   username: "username",
   password: "password",
   server: "www.example.com",
 }).then();
 
 // Delete user's credentials
-Plugins.NativeBiometric.deleteCredentials({
+NativeBiometric.deleteCredentials({
   server: "www.example.com",
 }).then();
 ```
