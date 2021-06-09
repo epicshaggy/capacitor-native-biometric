@@ -12,10 +12,7 @@ export class NativeBiometricWeb
   extends WebPlugin
   implements NativeBiometricPlugin {
   constructor() {
-    super({
-      name: "NativeBiometric",
-      platforms: ["web"],
-    });
+    super();
   }
   isAvailable(): Promise<AvailableResult> {
     throw new Error("Method not implemented.");
