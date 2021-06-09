@@ -9,7 +9,7 @@ Use biometrics confirm device owner presence or authenticate users. A couple of 
 ## Usage
 
 ```ts
-import { NativeBiometric } from "capaitor-native-biometric";
+import { NativeBiometric } from "capacitor-native-biometric";
 
 // Check if biometrics are available and which type is supported
 NativeBiometric.isAvailable().then(
