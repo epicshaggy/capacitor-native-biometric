@@ -151,7 +151,7 @@ To use android's BiometricPrompt api you must add the following permission to yo
 <uses-permission android:name="android.permission.USE_BIOMETRIC">
 ```
 
-And register the plugin by adding it to you MainActivity's onCreate (Not needed voor Capacitor 3):
+And register the plugin by adding it to you MainActivity's onCreate (Not needed for Capacitor 3):
 
 ```java
 import com.epicshaggy.biometric.NativeBiometric;
