@@ -45,7 +45,7 @@ public class AuthAcitivy extends AppCompatActivity {
             };
         }
 
-        maxRetries = getIntent().getIntExtra("retries", 5);
+        maxRetries = getIntent().getIntExtra("retries", 3);
         currentRetries = 0;
 
         promptInfo = new BiometricPrompt.PromptInfo.Builder()
@@ -72,7 +72,7 @@ public class AuthAcitivy extends AppCompatActivity {
             public void onAuthenticationFailed() {
                 super.onAuthenticationFailed();
                 currentRetries++;
-                if(currentRetries >= maxRetries) {
+                if(currentRetries > maxRetries) {
                     finishActivity("failed");
                 }
             }

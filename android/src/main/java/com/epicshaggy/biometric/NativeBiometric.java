@@ -122,6 +122,9 @@ public class NativeBiometric extends Plugin {
             if(call.hasOption("negativeButtonText"))
                 intent.putExtra("negativeButtonText", call.getString("negativeButtonText"));
 
+            if(call.hasOption("retries"))
+                intent.putExtra("retries", call.getInt("retries"));
+
             saveCall(call);
             startActivityForResult(call, intent, "verifyResult");
 
