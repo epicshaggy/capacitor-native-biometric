@@ -124,13 +124,13 @@ GetCredentialOptions
 
 | Properties | Default | Type   | Description                                                                     |
 | ---------- | ------- | ------ | ------------------------------------------------------------------------------- |
-| server     |         | string | The string used to identify the credentials object when setting the credentials |
+| server     |         | string | The string used to identify the credentials object when setting the credentials.|
 
 DeleteCredentialOptions
 
 | Properties | Default | Type   | Description                                                                     |
 | ---------- | ------- | ------ | ------------------------------------------------------------------------------- |
-| server     |         | string | The string used to identify the credentials object when setting the credentials |
+| server     |         | string | The string used to identify the credentials object when setting the credentials.|
 
 ## Face ID (iOS)
 
