@@ -66,37 +66,37 @@ public class NativeBiometric: CAPPlugin {
                         call.reject("Biometrics Error", "0")
                         return
                     }
-
+                    
                     switch error._code {
-
-                        case LAError.authenticationFailed.rawValue:
-                            errorCode = "10"
-
-                        case LAError.appCancel.rawValue:
-                            errorCode = "11"
-
-                        case LAError.invalidContext.rawValue:
-                            errorCode = "12"
-
-                        case LAError.notInteractive.rawValue:
-                            errorCode = "13"
-
-                        case LAError.passcodeNotSet.rawValue:
-                            errorCode = "14"
-
-                        case LAError.systemCancel.rawValue:
-                            errorCode = "15"
-
-                        case LAError.userCancel.rawValue:
-                            errorCode = "16"
-
-                        case LAError.userFallback.rawValue:
-                            errorCode = "17"
-
-                        default:
-                            errorCode = "0" // Biometrics unavailable
+                    
+                    case LAError.authenticationFailed.rawValue:
+                        errorCode = "10"
+                        
+                    case LAError.appCancel.rawValue:
+                        errorCode = "11"
+                        
+                    case LAError.invalidContext.rawValue:
+                        errorCode = "12"
+                        
+                    case LAError.notInteractive.rawValue:
+                        errorCode = "13"
+                        
+                    case LAError.passcodeNotSet.rawValue:
+                        errorCode = "14"
+                        
+                    case LAError.systemCancel.rawValue:
+                        errorCode = "15"
+                        
+                    case LAError.userCancel.rawValue:
+                        errorCode = "16"
+                        
+                    case LAError.userFallback.rawValue:
+                        errorCode = "17"
+                        
+                    default:
+                        errorCode = "0" // Biometrics unavailable
                     }
-                
+                    
                     call.reject(error.localizedDescription, errorCode, error)
                 }
                 
@@ -206,11 +206,11 @@ public class NativeBiometric: CAPPlugin {
         
         
         guard let existingItem = item as? [String: Any],
-            let passwordData = existingItem[kSecValueData as String] as? Data,
-            let password = String(data: passwordData, encoding: .utf8),
-            let username = existingItem[kSecAttrAccount as String] as? String
-            else {
-                throw KeychainError.unexpectedPasswordData
+              let passwordData = existingItem[kSecValueData as String] as? Data,
+              let password = String(data: passwordData, encoding: .utf8),
+              let username = existingItem[kSecAttrAccount as String] as? String
+        else {
+            throw KeychainError.unexpectedPasswordData
         }
         
         let credentials = Credentials(username: username, password: password)
