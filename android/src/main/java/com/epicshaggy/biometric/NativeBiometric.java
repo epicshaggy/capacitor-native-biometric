@@ -192,7 +192,7 @@ public class NativeBiometric extends Plugin {
                         call.reject("Verification failed", "10");
                         break;
                     default:
-                        call.reject("Verification error", "0");
+                        call.reject("Verification error: " + data.getStringExtra("result"), "0");
                         break;
                 }
             }

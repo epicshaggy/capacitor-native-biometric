@@ -53,7 +53,8 @@ public class AuthAcitivy extends AppCompatActivity {
             @Override
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
-                finishActivity("error");
+
+                finishActivity(errString.toString());
             }
 
             @Override
