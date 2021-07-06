@@ -6,11 +6,13 @@ import {
   GetCredentialOptions,
   SetCredentialOptions,
   DeleteCredentialOptions,
+  Credentials,
 } from "./definitions";
 
 export class NativeBiometricWeb
   extends WebPlugin
-  implements NativeBiometricPlugin {
+  implements NativeBiometricPlugin
+{
   constructor() {
     super();
   }
@@ -21,9 +23,7 @@ export class NativeBiometricWeb
   verifyIdentity(_options?: BiometricOptions): Promise<any> {
     throw new Error("Method not implemented.");
   }
-  getCredentials(
-    _options: GetCredentialOptions
-  ): Promise<import("./definitions").Credentials> {
+  getCredentials(_options: GetCredentialOptions): Promise<Credentials> {
     throw new Error("Method not implemented.");
   }
   setCredentials(_options: SetCredentialOptions): Promise<any> {
