@@ -23,6 +23,7 @@ export interface BiometricOptions {
   subtitle?: string;
   description?: string;
   negativeButtonText?: string;
+  retries?: number;
 }
 
 export interface GetCredentialOptions {
