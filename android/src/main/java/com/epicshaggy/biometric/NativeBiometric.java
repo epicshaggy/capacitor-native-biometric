@@ -92,13 +92,15 @@ public class NativeBiometric extends Plugin {
         JSObject ret = new JSObject();
 
         biometricManager = BiometricManager.from(getContext());
+        int canAuthenticateResult = biometricManager.canAuthenticate();
 
-        switch (biometricManager.canAuthenticate()) {
+        switch (canAuthenticateResult) {
             case BiometricManager.BIOMETRIC_SUCCESS:
                 ret.put("isAvailable", true);
                 break;
             default:
                 ret.put("isAvailable", false);
+                ret.put("errorCode", canAuthenticateResult);
                 break;
         }
 
@@ -183,13 +185,15 @@ public class NativeBiometric extends Plugin {
     private void verifyResult(PluginCall call, ActivityResult result){
         if(result.getResultCode() == Activity.RESULT_OK){
             Intent data = result.getData();
+            JSObject ret = new JSObject();
             if(data.hasExtra("result")){
                 switch (data.getStringExtra("result")){
                     case "success":
-                        call.resolve();
+                        ret.put("verified", true);
+                        call.resolve(ret);
                         break;
-                    case "failed":
-                        call.reject("Verification failed", "10");
+                    case "failed":                        
+                        call.reject(data.getStringExtra("errorDetails"), data.getStringExtra("errorCode"));
                         break;
                     default:
                         call.reject("Verification error: " + data.getStringExtra("result"), "0");
