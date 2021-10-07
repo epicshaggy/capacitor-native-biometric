@@ -72,10 +72,11 @@ NativeBiometric.deleteCredentials({
 
 AvailableOptions
 
-| Properties   | Default | Type          | Description                                                 |
-| ------------ | ------- | ------------- | ----------------------------------------------------------- |
-| isAvailable  |         | boolean       | Specifies if the devices has biometric enrollment           |
-| biometryType |         | BiometricType | Specifies if the available biometric hardware on the device |
+| Properties         | Default | Type          | Description                                                                  |
+| ------------------ | ------- | ------------- | ---------------------------------------------------------------------------- |
+| isAvailable        |         | boolean       | Specifies if the devices has biometric enrollment                            |
+| biometryType       |         | BiometricType | Specifies if the available biometric hardware on the device                  |
+| deviceCredEnrolled |         | boolean       | Specifies if a PIN/pattern/password on Android or passcode on ios is enabled |
 
 BiometryType - enum
 
@@ -90,13 +91,14 @@ BiometryType - enum
 
 BiometricOptions
 
-| Properties          | Default                        | Type   | Description                                                                                               |
-| ------------------- | ------------------------------ | ------ | --------------------------------------------------------------------------------------------------------- |
-| reason?             | "For biometric authentication" | string | Reason for requesting authentication in iOS. Displays in the authentication dialog presented to the user. |
-| title?              | "Authenticate"                 | string | Title for the Android prompt                                                                              |
-| subtitle?           |                                | string | Subtitle for the Android prompt                                                                           |
-| description?        |                                | string | Description for the Android prompt                                                                        |
-| negativeButtonText? | "Cancel"                       | string | Text for the negative button displayed on Android                                                         |
+| Properties                 | Default                        | Type    | Description                                                                                               |
+| -------------------------- | ------------------------------ | ------- | --------------------------------------------------------------------------------------------------------- |
+| reason?                    | "For biometric authentication" | string  | Reason for requesting authentication in iOS. Displays in the authentication dialog presented to the user. |
+| title?                     | "Authenticate"                 | string  | Title for the Android prompt                                                                              |
+| subtitle?                  |                                | string  | Subtitle for the Android prompt                                                                           |
+| description?               |                                | string  | Description for the Android prompt                                                                        |
+| negativeButtonText?        | "Cancel"                       | string  | Text for the negative button displayed on Android                                                         |
+| isDeviceCredentialAllowed? | false                          | boolean | Enables backup option on authentication dialogue                                                          |
 
 VerifyIdentityErrors
 
@@ -148,7 +150,7 @@ This value is just the reason for using FaceID. You can add something like the f
 To use android's BiometricPrompt api you must add the following permission to your AndroidManifest.xml:
 
 ```xml
-<uses-permission android:name="android.permission.USE_BIOMETRIC">
+<uses-permission android:name="android.permission.USE_BIOMETRIC" />
 ```
 
 And register the plugin by adding it to you MainActivity's onCreate (Not needed for Capacitor 3):

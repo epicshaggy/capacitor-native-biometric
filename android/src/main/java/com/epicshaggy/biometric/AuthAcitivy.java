@@ -26,6 +26,21 @@ public class AuthAcitivy extends AppCompatActivity {
     private BiometricPrompt.PromptInfo promptInfo;
     private BiometricPrompt biometricPrompt;
 
+    private BiometricPrompt.PromptInfo createPromptInfo() {
+        BiometricPrompt.PromptInfo.Builder promptInfo = new BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getIntent().hasExtra("title") ? getIntent().getStringExtra("title") : "Authenticate")
+            .setSubtitle(getIntent().hasExtra("subtitle") ? getIntent().getStringExtra("subtitle") : null)
+            .setDescription(getIntent().hasExtra("description") ? getIntent().getStringExtra("description") : null);
+
+        if(getIntent().hasExtra("isDeviceCredentialAllowed")) {
+            promptInfo.setDeviceCredentialAllowed(true);
+        } else {
+            promptInfo.setNegativeButtonText(getIntent().hasExtra("negativeButtonText") ? getIntent().getStringExtra("negativeButtonText") : "Cancel");
+        }
+
+        return promptInfo.build();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,12 +57,6 @@ public class AuthAcitivy extends AppCompatActivity {
             };
         }
 
-        promptInfo = new BiometricPrompt.PromptInfo.Builder()
-                .setTitle(getIntent().hasExtra("title") ? getIntent().getStringExtra("title") : "Authenticate")
-                .setSubtitle(getIntent().hasExtra("subtitle") ? getIntent().getStringExtra("subtitle") : null)
-                .setDescription(getIntent().hasExtra("description") ? getIntent().getStringExtra("description") : null)
-                .setNegativeButtonText(getIntent().hasExtra("negativeButtonText") ? getIntent().getStringExtra("negativeButtonText") : "Cancel")
-                .build();
 
         biometricPrompt = new BiometricPrompt(this, executor, new BiometricPrompt.AuthenticationCallback() {
             @Override
@@ -70,7 +79,7 @@ public class AuthAcitivy extends AppCompatActivity {
             }
         });
 
-        biometricPrompt.authenticate(promptInfo);
+        biometricPrompt.authenticate(createPromptInfo());
 
     }
 

@@ -52,6 +52,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import android.app.KeyguardManager;
+import static android.content.Context.KEYGUARD_SERVICE;
 
 @CapacitorPlugin(name = "NativeBiometric")
 public class NativeBiometric extends Plugin {
@@ -87,6 +89,16 @@ public class NativeBiometric extends Plugin {
         }
     }
 
+    private boolean checkDeviceCredsEnrolled() {
+        KeyguardManager km = (KeyguardManager) getContext().getSystemService(KEYGUARD_SERVICE);
+
+        if (! km.isKeyguardSecure()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     @PluginMethod()
     public void isAvailable(PluginCall call) {
         JSObject ret = new JSObject();
@@ -102,28 +114,37 @@ public class NativeBiometric extends Plugin {
                 break;
         }
 
-
         ret.put("biometryType", getAvailableFeature());
+        ret.put("deviceCredEnrolled", checkDeviceCredsEnrolled());
         call.resolve(ret);
     }
 
     @PluginMethod()
     public void verifyIdentity(final PluginCall call) {
-            Intent intent = new Intent(getContext(), AuthAcitivy.class);
+        Intent intent = new Intent(getContext(), AuthAcitivy.class);
 
-            intent.putExtra("title", call.getString("title", "Authenticate"));
+        intent.putExtra("title", call.getString("title", "Authenticate"));
 
-            if(call.hasOption("subtitle"))
-                intent.putExtra("subtitle", call.getString("subtitle"));
+        if(call.hasOption("subtitle"))
+            intent.putExtra("subtitle", call.getString("subtitle"));
 
-            if(call.hasOption("description"))
-                intent.putExtra("description", call.getString("description"));
+        if(call.hasOption("description"))
+            intent.putExtra("description", call.getString("description"));
 
+        if(call.hasOption("isDeviceCredentialAllowed")) {
+
+            Boolean isDeviceCredentialAllowed = call.getBoolean("isDeviceCredentialAllowed");
+
+            if (isDeviceCredentialAllowed == true) {
+                intent.putExtra("isDeviceCredentialAllowed", true);
+            }
+        } else {
             if(call.hasOption("negativeButtonText"))
                 intent.putExtra("negativeButtonText", call.getString("negativeButtonText"));
+        }
 
-            saveCall(call);
-            startActivityForResult(call, intent, "verifyResult");
+        saveCall(call);
+        startActivityForResult(call, intent, "verifyResult");
 
     }
 

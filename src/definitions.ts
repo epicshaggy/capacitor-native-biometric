@@ -15,6 +15,7 @@ export interface Credentials {
 export interface AvailableResult {
   isAvailable: boolean;
   biometryType: BiometryType;
+  deviceCredEnrolled: boolean;
 }
 
 export interface BiometricOptions {
@@ -23,6 +24,7 @@ export interface BiometricOptions {
   subtitle?: string;
   description?: string;
   negativeButtonText?: string;
+  isDeviceCredentialAllowed?: boolean;
 }
 
 export interface GetCredentialOptions {
