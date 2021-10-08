@@ -131,6 +131,9 @@ public class NativeBiometric extends Plugin {
         if(call.hasOption("description"))
             intent.putExtra("description", call.getString("description"));
 
+        if(call.hasOption("disableConfirmationRequired"))
+            intent.putExtra("disableConfirmationRequired", call.getString("disableConfirmationRequired"));
+
         if(call.hasOption("isDeviceCredentialAllowed")) {
 
             Boolean isDeviceCredentialAllowed = call.getBoolean("isDeviceCredentialAllowed");

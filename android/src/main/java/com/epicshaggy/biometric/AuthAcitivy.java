@@ -38,6 +38,10 @@ public class AuthAcitivy extends AppCompatActivity {
             promptInfo.setNegativeButtonText(getIntent().hasExtra("negativeButtonText") ? getIntent().getStringExtra("negativeButtonText") : "Cancel");
         }
 
+        if(getIntent().hasExtra("disableConfirmationRequired")) {
+            promptInfo.setConfirmationRequired(false);
+        }
+
         return promptInfo.build();
     }
 

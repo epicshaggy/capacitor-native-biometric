@@ -25,6 +25,7 @@ export interface BiometricOptions {
   description?: string;
   negativeButtonText?: string;
   isDeviceCredentialAllowed?: boolean;
+  disableConfirmationRequired?: boolean;
 }
 
 export interface GetCredentialOptions {

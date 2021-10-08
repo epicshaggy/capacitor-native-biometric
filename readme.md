@@ -91,14 +91,16 @@ BiometryType - enum
 
 BiometricOptions
 
-| Properties                 | Default                        | Type    | Description                                                                                               |
-| -------------------------- | ------------------------------ | ------- | --------------------------------------------------------------------------------------------------------- |
-| reason?                    | "For biometric authentication" | string  | Reason for requesting authentication in iOS. Displays in the authentication dialog presented to the user. |
-| title?                     | "Authenticate"                 | string  | Title for the Android prompt                                                                              |
-| subtitle?                  |                                | string  | Subtitle for the Android prompt                                                                           |
-| description?               |                                | string  | Description for the Android prompt                                                                        |
-| negativeButtonText?        | "Cancel"                       | string  | Text for the negative button displayed on Android                                                         |
-| isDeviceCredentialAllowed? | false                          | boolean | Enables backup option on authentication dialogue                                                          |
+| Properties                   | Default                        | Type    | Description                                                                                               |
+| ---------------------------- | ------------------------------ | ------- | --------------------------------------------------------------------------------------------------------- |
+| reason?                      | "For biometric authentication" | string  | Reason for requesting authentication in iOS. Displays in the authentication dialog presented to the user. |
+| title?                       | "Authenticate"                 | string  | Title for the Android prompt                                                                              |
+| subtitle?                    |                                | string  | Subtitle for the Android prompt                                                                           |
+| description?                 |                                | string  | Description for the Android prompt                                                                        |
+| negativeButtonText?          | "Cancel"                       | string  | Text for the negative button displayed on Android                                                         |
+| isDeviceCredentialAllowed?   | false                          | boolean | Enables backup option on authentication dialogue                                                          |
+| disableConfirmationRequired? | false                          | boolean | Sets a system hint for whether to disable explicit user confirmation after a passive biometric            |
+|                              |                                |         |    (e.g. iris or face) has been recognized but before                                                     |
 
 VerifyIdentityErrors
 
