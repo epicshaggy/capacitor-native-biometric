@@ -12,6 +12,10 @@ export interface Credentials {
   password: string;
 }
 
+export interface IsAvailableOptions {
+  useFallback: boolean;
+}
+
 export interface AvailableResult {
   isAvailable: boolean;
   biometryType: BiometryType;
@@ -23,6 +27,7 @@ export interface BiometricOptions {
   subtitle?: string;
   description?: string;
   negativeButtonText?: string;
+  useFallback?: boolean;
 }
 
 export interface GetCredentialOptions {
@@ -40,7 +45,7 @@ export interface DeleteCredentialOptions {
 }
 
 export interface NativeBiometricPlugin {
-  isAvailable(): Promise<AvailableResult>;
+  isAvailable(options?: IsAvailableOptions): Promise<AvailableResult>;
 
   verifyIdentity(options?: BiometricOptions): Promise<any>;
 
