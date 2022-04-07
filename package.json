@@ -42,9 +42,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/epicshaggy/capacitor-native-biometric"
+    "url": "https://github.com/danyyacoub/capacitor-native-biometric"
   },
   "bugs": {
-    "url": "https://github.com/epicshaggy/capacitor-native-biometric/issues"
+    "url": "https://github.com/danyyacoub/capacitor-native-biometric/issues"
   }
 }
