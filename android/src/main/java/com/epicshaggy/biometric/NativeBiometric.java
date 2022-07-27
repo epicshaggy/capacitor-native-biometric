@@ -109,7 +109,7 @@ public class NativeBiometric extends Plugin {
 
     @PluginMethod()
     public void verifyIdentity(final PluginCall call) {
-            Intent intent = new Intent(getContext(), AuthAcitivy.class);
+            Intent intent = new Intent(getContext(), AuthActivity.class);
 
             intent.putExtra("title", call.getString("title", "Authenticate"));
 
