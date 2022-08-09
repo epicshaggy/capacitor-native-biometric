@@ -20,7 +20,7 @@ import com.epicshaggy.biometric.capacitornativebiometric.R;
 
 import java.util.concurrent.Executor;
 
-public class AuthAcitivy extends AppCompatActivity {
+public class AuthActivity extends AppCompatActivity {
 
     private Executor executor;
     private BiometricPrompt.PromptInfo promptInfo;
