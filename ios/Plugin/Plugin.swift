@@ -30,13 +30,10 @@ public class NativeBiometric: CAPPlugin {
         var obj = JSObject()
         
         obj["isAvailable"] = false
-        
-        let useFallback = call.getBool("useFallback", false)
+
+        let useFallback = call.getBool('useFallback', false)
         let policy = useFallback ? LAPolicy.deviceOwnerAuthentication : LAPolicy.deviceOwnerAuthenticationWithBiometrics
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error){
-            obj["isAvailable"] = true
-        }
-        
+
         switch context.biometryType {
         case .touchID:
             obj["biometryType"] = 1
@@ -46,15 +43,39 @@ public class NativeBiometric: CAPPlugin {
             obj["biometryType"] = 0
         }
         
-        call.resolve(obj)
+        if context.canEvaluatePolicy(policy, error: &error){
+            obj["isAvailable"] = true
+            call.resolve(obj)
+        } else {
+            guard let authError = error else {
+                // todo: call.reject(error)
+                return
+            }
+            var errorCode = 0
+            switch authError.code {
+                case LAError.biometryNotAvailable.rawValue:
+                    errorCode = 1
+                    
+                case LAError.biometryLockout.rawValue:
+                    errorCode = 2 //"Authentication could not continue because the user has been locked out of biometric authentication, due to failing authentication too many times."
+                    
+                case LAError.biometryNotEnrolled.rawValue:
+                    errorCode = 3//message = "Authentication could not start because the user has not enrolled in biometric authentication."
+                    
+                default:
+                    errorCode = 0 //"Did not find error code on LAError object"
+            }
+            obj["errorCode"] = errorCode
+            call.resolve(obj)
+        }
+                        
     }
     
     @objc func verifyIdentity(_ call: CAPPluginCall){
         let context = LAContext()
         var canEvaluateError: NSError?
-        
-        let useFallback = call.getBool("useFallback", false)
 
+        let useFallback = call.getBool('useFallback', false)
         let policy = useFallback ? LAPolicy.deviceOwnerAuthentication : LAPolicy.deviceOwnerAuthenticationWithBiometrics
         
         if context.canEvaluatePolicy(policy, error: &canEvaluateError){
@@ -64,7 +85,8 @@ public class NativeBiometric: CAPPlugin {
             context.evaluatePolicy(policy, localizedReason: reason) { (success, evaluateError) in
                 
                 if success {
-                    call.resolve()
+                    obj["verified"] = true
+                    call.resolve(obj)
                 }else{
                     var errorCode = "0"
                     guard let error = evaluateError
@@ -98,12 +120,20 @@ public class NativeBiometric: CAPPlugin {
                         
                     case LAError.userFallback.rawValue:
                         errorCode = "17"
+
+                    case LAError.biometryNotAvailable.rawValue:
+                        errorCode = "1"
+                
+                    case LAError.biometryLockout.rawValue:
+                        errorCode = "2" //"Authentication could not continue because the user has been locked out of biometric authentication, due to failing authentication too many times."
+                
+                    case LAError.biometryNotEnrolled.rawValue:
+                        errorCode = "3" //message = "Authentication could not start because the user has not enrolled in biometric authentication."
                         
                     default:
                         errorCode = "0" // Biometrics unavailable
-                    }
-                    
-                    call.reject(error.localizedDescription, errorCode, error)
+                    }                    
+                    call.reject(error.localizedDescription, errorCode, error )
                 }
                 
             }

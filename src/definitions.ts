@@ -19,6 +19,7 @@ export interface IsAvailableOptions {
 export interface AvailableResult {
   isAvailable: boolean;
   biometryType: BiometryType;
+  useFallback?: boolean;
 }
 
 export interface BiometricOptions {

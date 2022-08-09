@@ -54,19 +54,18 @@ public class AuthAcitivy extends AppCompatActivity {
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
 
-                finishActivity(errString.toString());
+                finishActivity(errString.toString(), errorCode);
             }
 
             @Override
             public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
-                finishActivity("success");
+                finishActivity("success", 0);
             }
 
             @Override
             public void onAuthenticationFailed() {
-                super.onAuthenticationFailed();
-                finishActivity("failed");
+                super.onAuthenticationFailed();                
             }
         });
 
@@ -74,9 +73,15 @@ public class AuthAcitivy extends AppCompatActivity {
 
     }
 
-    void finishActivity(String result) {
+    void finishActivity(String result, int errorCode) {
         Intent intent = new Intent();
-        intent.putExtra("result", result);
+        if(errorCode != 0){
+            intent.putExtra("result", "failed");
+            intent.putExtra("errorDetails",result);
+            intent.putExtra("errorCode",String.valueOf(errorCode));
+        }else{
+            intent.putExtra("result", result);
+        }      
         setResult(RESULT_OK, intent);
         finish();
     }
