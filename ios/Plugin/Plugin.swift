@@ -30,25 +30,27 @@ public class NativeBiometric: CAPPlugin {
         var obj = JSObject()
         
         obj["isAvailable"] = false
+        obj["biometryType"] = 0
 
         let useFallback = call.getBool("useFallback", false)
         let policy = useFallback ? LAPolicy.deviceOwnerAuthentication : LAPolicy.deviceOwnerAuthenticationWithBiometrics
-
-        switch context.biometryType {
-        case .touchID:
-            obj["biometryType"] = 1
-        case .faceID:
-            obj["biometryType"] = 2
-        default:
-            obj["biometryType"] = 0
-        }
         
         if context.canEvaluatePolicy(policy, error: &error){
+            switch context.biometryType {
+                case .touchID:
+                    obj["biometryType"] = 1
+                case .faceID:
+                    obj["biometryType"] = 2
+                default:
+                    obj["biomertryType"] = 0
+            }
+            
             obj["isAvailable"] = true
             call.resolve(obj)
         } else {
             guard let authError = error else {
-                // todo: call.reject(error)
+                obj["errorCode"] = 0
+                call.resolve(obj)
                 return
             }
             var errorCode = 0
