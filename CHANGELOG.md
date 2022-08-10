@@ -1,3 +1,9 @@
+#### 4.1.1 (2022-08-10)
+
+##### Bug Fixes
+
+* **useFallback:**  Added to android ([393c5c4d](https://github.com/epicshaggy/capacitor-native-biometric/commit/393c5c4de8757c9849ae92d92350029e8144d4d5))
+
 #### 4.1.0 (2022-08-10)
 
 ##### New Features
