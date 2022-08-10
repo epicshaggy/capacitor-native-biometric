@@ -11,39 +11,28 @@ Use biometrics confirm device owner presence or authenticate users. A couple of 
 ```ts
 import { NativeBiometric } from "capacitor-native-biometric";
 
-// Check if biometrics are available and which type is supported
-NativeBiometric.isAvailable().then(
-  (result: AvailableResult) => {
-    const isAvailable = result.isAvailable;
-    const isFaceId = result.biometryType == BiometryType.FACE_ID;
+async performBiometricVerificatin(){
+  const result = await NativeBiometric.isAvailable();
 
-    if (isAvailable) {
-      // Get user's credentials
-      NativeBiometric.getCredentials({
-        server: "www.example.com",
-      }).then((credentials: Credentials) => {
-        // Authenticate using biometrics before logging the user in
-        NativeBiometric.verifyIdentity({
-          reason: "For easy log in",
-          title: "Log in",
-          subtitle: "Maybe add subtitle here?",
-          description: "Maybe a description too?",
-        }).then(
-          () => {
-            // Authentication successful
-            this.login(credentials.username, credentials.password);
-          },
-          (error) => {
-            // Failed to authenticate
-          }
-        );
-      });
-    }
-  },
-  (error) => {
-    // Couldn't check availability
-  }
-);
+  if(!result.isAvailable) return;
+
+  const isFaceID = result.biometryType == BiometryType.FACE_ID;
+
+  const verified = await NativeBiometric.verifyIdentity({
+    reason: "For easy log in",
+    title: "Log in",
+    subtitle: "Maybe add subtitle here?",
+    description: "Maybe a description too?",
+  })
+    .then(() => true)
+    .catch(() => false);
+
+  if(!verified) return;
+
+  const credentials = await NativeBiometric.getCredentials({
+    server: "www.example.com",
+  });
+}
 
 // Save user's credentials
 NativeBiometric.setCredentials({
