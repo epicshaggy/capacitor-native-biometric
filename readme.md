@@ -82,6 +82,7 @@ NativeBiometric.deleteCredentials({
 | -------------- | ------- | -------------- | -------------------------------------------------------- |
 | `isAvailable`  |         | `boolean`      | Specifies if the devices has biometric enrollment        |
 | `biometryType` |         | `BiometryType` | Specifies the available biometric hardware on the device |
+| `errorCode?`   |         | `number`       | Error code returned by the native API                    |
 
 ### BiometryType - enum
 
