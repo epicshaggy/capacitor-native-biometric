@@ -61,9 +61,9 @@ NativeBiometric.deleteCredentials({
 
 ### IsAvailableOptions
 
-| Properties     | Default | Type      | Description                                                                      |
-| -------------- | ------- | --------- | -------------------------------------------------------------------------------- |
-| `useFallback?` |         | `boolean` | Specifies if the device should fallback to using passcode authentication on iOS. |
+| Properties     | Default | Type      | Description                                                               |
+| -------------- | ------- | --------- | ------------------------------------------------------------------------- |
+| `useFallback?` |         | `boolean` | Specifies if the device should fallback to using passcode authentication. |
 
 ### AvailableResult
 
@@ -86,14 +86,15 @@ NativeBiometric.deleteCredentials({
 
 ### BiometricOptions
 
-| Properties            | Default                        | Type     | Description                                                                                               |
-| --------------------- | ------------------------------ | -------- | --------------------------------------------------------------------------------------------------------- |
-| `reason?`             | "For biometric authentication" | `string` | Reason for requesting authentication in iOS. Displays in the authentication dialog presented to the user. |
-| `title?`              | "Authenticate"                 | `string` | Title for the Android prompt                                                                              |
-| `subtitle?`           |                                | `string` | Subtitle for the Android prompt                                                                           |
-| `description?`        |                                | `string` | Description for the Android prompt                                                                        |
-| `negativeButtonText?` | "Cancel"                       | `string` | Text for the negative button displayed on Android                                                         |
-| `maxAttempts?`        | 1                              | number   | Limit the number of attempts a user can perform biometric authentication. (Android - Max 5)               |
+| Properties            | Default                        | Type      | Description                                                                                               |
+| --------------------- | ------------------------------ | --------- | --------------------------------------------------------------------------------------------------------- |
+| `reason?`             | "For biometric authentication" | `string`  | Reason for requesting authentication in iOS. Displays in the authentication dialog presented to the user. |
+| `title?`              | "Authenticate"                 | `string`  | Title for the Android prompt                                                                              |
+| `subtitle?`           |                                | `string`  | Subtitle for the Android prompt                                                                           |
+| `description?`        |                                | `string`  | Description for the Android prompt                                                                        |
+| `negativeButtonText?` | "Cancel"                       | `string`  | Text for the negative button displayed on Android                                                         |
+| `maxAttempts?`        | 1                              | `number`  | Limit the number of attempts a user can perform biometric authentication. (Android - Max 5)               |
+| `useFallback?`        | `false`                        | `boolean` | Specifies if the device should fallback to using passcode authentication.(Android - Max 5)                |
 
 ### VerifyIdentityErrors
 

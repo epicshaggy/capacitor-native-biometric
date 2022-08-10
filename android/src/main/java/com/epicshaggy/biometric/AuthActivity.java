@@ -23,8 +23,6 @@ import java.util.concurrent.Executor;
 public class AuthActivity extends AppCompatActivity {
 
     private Executor executor;
-    private BiometricPrompt.PromptInfo promptInfo;
-    private BiometricPrompt biometricPrompt;
     private int maxAttempts;
     private int counter = 0;
 
@@ -46,14 +44,25 @@ public class AuthActivity extends AppCompatActivity {
             };
         }
 
-        promptInfo = new BiometricPrompt.PromptInfo.Builder()
+        BiometricPrompt.PromptInfo.Builder builder = new BiometricPrompt.PromptInfo.Builder()
                 .setTitle(getIntent().hasExtra("title") ? getIntent().getStringExtra("title") : "Authenticate")
                 .setSubtitle(getIntent().hasExtra("subtitle") ? getIntent().getStringExtra("subtitle") : null)
-                .setDescription(getIntent().hasExtra("description") ? getIntent().getStringExtra("description") : null)
-                .setNegativeButtonText(getIntent().hasExtra("negativeButtonText") ? getIntent().getStringExtra("negativeButtonText") : "Cancel")
-                .build();
+                .setDescription(getIntent().hasExtra("description") ? getIntent().getStringExtra("description") : null);
 
-        biometricPrompt = new BiometricPrompt(this, executor, new BiometricPrompt.AuthenticationCallback() {
+        boolean useFallback = getIntent().getBooleanExtra("useFallback", false);
+
+        if(useFallback)
+        {
+            builder.setDeviceCredentialAllowed(true);
+        }
+        else
+        {
+            builder.setNegativeButtonText(getIntent().hasExtra("negativeButtonText") ? getIntent().getStringExtra("negativeButtonText") : "Cancel");
+        }
+
+        BiometricPrompt.PromptInfo promptInfo = builder.build();
+
+        BiometricPrompt biometricPrompt = new BiometricPrompt(this, executor, new BiometricPrompt.AuthenticationCallback() {
             @Override
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);

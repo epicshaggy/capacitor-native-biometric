@@ -1,6 +1,7 @@
 package com.epicshaggy.biometric;
 
 import android.app.Activity;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -119,6 +120,15 @@ public class NativeBiometric extends Plugin {
 
             if(call.hasOption("maxAttempts"))
                 intent.putExtra("maxAttempts", call.getInt("maxAttempts"));
+
+            boolean useFallback = call.getBoolean("useFallback", false);
+
+            if (useFallback && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
+                useFallback = keyguardManager.isDeviceSecure();
+            }
+
+            intent.putExtra("useFallback", useFallback);
 
             bridge.saveCall(call);
             startActivityForResult(call, intent, "verifyResult");
