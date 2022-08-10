@@ -13,13 +13,15 @@ export interface Credentials {
 }
 
 export interface IsAvailableOptions {
+  /**
+   * Specifies if should fallback to passcode authentication if biometric authentication is not available.
+   */
   useFallback: boolean;
 }
 
 export interface AvailableResult {
   isAvailable: boolean;
   biometryType: BiometryType;
-  useFallback?: boolean;
 }
 
 export interface BiometricOptions {
@@ -29,6 +31,12 @@ export interface BiometricOptions {
   description?: string;
   negativeButtonText?: string;
   useFallback?: boolean;
+  /**
+   * Only for Android.
+   * Set a maximum number of attempts for biometric authentication. The maximum allowed by android is 5.
+   * @default 1
+   */
+  maxAttempts?: number;
 }
 
 export interface GetCredentialOptions {

@@ -31,7 +31,7 @@ public class NativeBiometric: CAPPlugin {
         
         obj["isAvailable"] = false
 
-        let useFallback = call.getBool('useFallback', false)
+        let useFallback = call.getBool("useFallback", false)
         let policy = useFallback ? LAPolicy.deviceOwnerAuthentication : LAPolicy.deviceOwnerAuthenticationWithBiometrics
 
         switch context.biometryType {
@@ -75,18 +75,17 @@ public class NativeBiometric: CAPPlugin {
         let context = LAContext()
         var canEvaluateError: NSError?
 
-        let useFallback = call.getBool('useFallback', false)
+        let useFallback = call.getBool("useFallback", false)
         let policy = useFallback ? LAPolicy.deviceOwnerAuthentication : LAPolicy.deviceOwnerAuthenticationWithBiometrics
         
         if context.canEvaluatePolicy(policy, error: &canEvaluateError){
             
             let reason = call.getString("reason") ?? "For biometric authentication"
-            
+
             context.evaluatePolicy(policy, localizedReason: reason) { (success, evaluateError) in
                 
                 if success {
-                    obj["verified"] = true
-                    call.resolve(obj)
+                    call.resolve()
                 }else{
                     var errorCode = "0"
                     guard let error = evaluateError

@@ -25,11 +25,15 @@ public class AuthActivity extends AppCompatActivity {
     private Executor executor;
     private BiometricPrompt.PromptInfo promptInfo;
     private BiometricPrompt biometricPrompt;
+    private int maxAttempts;
+    private int counter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth_acitivy);
+
+        maxAttempts = getIntent().getIntExtra("maxAttempts", 1);
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
             executor = this.getMainExecutor();
@@ -65,7 +69,10 @@ public class AuthActivity extends AppCompatActivity {
 
             @Override
             public void onAuthenticationFailed() {
-                super.onAuthenticationFailed();                
+                super.onAuthenticationFailed();
+                counter++;
+                if(counter == maxAttempts)
+                    finishActivity("failed");
             }
         });
 
@@ -73,10 +80,18 @@ public class AuthActivity extends AppCompatActivity {
 
     }
 
+    void finishActivity(String result) {
+        Intent intent = new Intent();
+        intent.putExtra("result", "failed");
+        intent.putExtra("errorDetails", "Authentication failed.");
+        setResult(RESULT_OK, intent);
+        finish();
+    }
+
     void finishActivity(String result, int errorCode) {
         Intent intent = new Intent();
         if(errorCode != 0){
-            intent.putExtra("result", "failed");
+            intent.putExtra("result", "error");
             intent.putExtra("errorDetails",result);
             intent.putExtra("errorCode",String.valueOf(errorCode));
         }else{

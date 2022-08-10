@@ -1,8 +1,6 @@
 package com.epicshaggy.biometric;
 
-import android.Manifest;
 import android.app.Activity;
-import android.app.AppComponentFactory;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,15 +10,11 @@ import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
-import android.util.Log;
-
 
 import androidx.activity.result.ActivityResult;
 import androidx.biometric.BiometricManager;
-import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.JSObject;
-import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -104,7 +98,6 @@ public class NativeBiometric extends Plugin {
                 break;
         }
 
-
         ret.put("biometryType", getAvailableFeature());
         call.resolve(ret);
     }
@@ -124,9 +117,11 @@ public class NativeBiometric extends Plugin {
             if(call.hasOption("negativeButtonText"))
                 intent.putExtra("negativeButtonText", call.getString("negativeButtonText"));
 
-            saveCall(call);
-            startActivityForResult(call, intent, "verifyResult");
+            if(call.hasOption("maxAttempts"))
+                intent.putExtra("maxAttempts", call.getInt("maxAttempts"));
 
+            bridge.saveCall(call);
+            startActivityForResult(call, intent, "verifyResult");
     }
 
     @PluginMethod()
@@ -183,23 +178,23 @@ public class NativeBiometric extends Plugin {
 
     @ActivityCallback
     private void verifyResult(PluginCall call, ActivityResult result){
-        if(result.getResultCode() == Activity.RESULT_OK){
+        if(result.getResultCode() == Activity.RESULT_OK) {
             Intent data = result.getData();
-            JSObject ret = new JSObject();
-            if(data.hasExtra("result")){
-                switch (data.getStringExtra("result")){
+            if (data.hasExtra("result")) {
+                switch (data.getStringExtra("result")) {
                     case "success":
-                        ret.put("verified", true);
-                        call.resolve(ret);
+                        call.resolve();
                         break;
-                    case "failed":                        
+                    case "failed":
                         call.reject(data.getStringExtra("errorDetails"), data.getStringExtra("errorCode"));
                         break;
                     default:
-                        call.reject("Verification error: " + data.getStringExtra("result"), "0");
+                        call.reject("Verification error: " + data.getStringExtra("result"));
                         break;
                 }
             }
+        } else {
+            call.reject("Something went wrong.");
         }
     }
 
