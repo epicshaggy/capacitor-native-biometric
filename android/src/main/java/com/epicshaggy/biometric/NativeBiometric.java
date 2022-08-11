@@ -283,11 +283,10 @@ public class NativeBiometric extends Plugin {
     }
 
 
-    private Key getKey(String KEY_ALIAS) throws GeneralSecurityException, IOException {
-        KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) getKeyStore().getEntry(KEY_ALIAS, null);
-        if (secretKeyEntry != null) {
-            return secretKeyEntry.getSecretKey();
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+
+    private Key generateKey(String KEY_ALIAS) throws GeneralSecurityException, IOException{
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
             generator.init(new KeyGenParameterSpec.Builder(
                     KEY_ALIAS,
@@ -301,6 +300,14 @@ public class NativeBiometric extends Plugin {
         } else {
             return getAESKey(KEY_ALIAS);
         }
+    }
+
+    private Key getKey(String KEY_ALIAS) throws GeneralSecurityException, IOException {
+        KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) getKeyStore().getEntry(KEY_ALIAS, null);
+        if (secretKeyEntry != null) {
+            return secretKeyEntry.getSecretKey();
+        }
+        return generateKey(KEY_ALIAS);
     }
 
     private KeyStore getKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
