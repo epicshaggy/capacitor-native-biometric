@@ -75,14 +75,15 @@ NativeBiometric.deleteCredentials({
 
 ### BiometryType - enum
 
-| Properties            | Description                                |
-| --------------------- | ------------------------------------------ |
-| `NONE`                | There is no biometry available             |
-| `TOUCH_ID`            | TouchID is available (iOS)                 |
-| `FACE_ID`             | FaceID is available (iOS)                  |
-| `FINGERPRINT`         | Fingerprint is available (Android)         |
-| `FACE_AUTHENTICATION` | Face Authentication is available (Android) |
-| `IRIS_AUTHENTICATION` | Iris Authentication is available (Android) |
+| Properties            | Description                                                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `NONE`                | There is no biometry available                                                                                                |
+| `TOUCH_ID`            | TouchID is available (iOS)                                                                                                    |
+| `FACE_ID`             | FaceID is available (iOS)                                                                                                     |
+| `FINGERPRINT`         | Fingerprint is available (Android)                                                                                            |
+| `FACE_AUTHENTICATION` | Face Authentication is available (Android)                                                                                    |
+| `IRIS_AUTHENTICATION` | Iris Authentication is available (Android)                                                                                    |
+| `MULTIPLE`            | Returned when device has multiple biometric features. Currently there is no way of knowing which one is being used. (Android) |
 
 ### BiometricOptions
 
