@@ -5,6 +5,7 @@ export enum BiometryType {
   FINGERPRINT,
   FACE_AUTHENTICATION,
   IRIS_AUTHENTICATION,
+  MULTIPLE,
 }
 
 export interface Credentials {

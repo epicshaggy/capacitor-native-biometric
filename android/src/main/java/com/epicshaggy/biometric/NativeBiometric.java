@@ -58,6 +58,8 @@ public class NativeBiometric extends Plugin {
     private static final int FINGERPRINT = 3;
     private static final int FACE_AUTHENTICATION = 4;
     private static final int IRIS_AUTHENTICATION = 5;
+    private static final int MULTIPLE = 6;
+
 
     private KeyStore keyStore;
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
@@ -71,15 +73,34 @@ public class NativeBiometric extends Plugin {
     private SharedPreferences encryptedSharedPreferences;
 
     private int getAvailableFeature() {
+        // default to none
+        int type = NONE;
+
+        // if has fingerprint
         if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
-            return FINGERPRINT;
-        } if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FACE)) {
-            return FACE_AUTHENTICATION;
-        } else if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_IRIS)) {
-            return IRIS_AUTHENTICATION;
-        } else {
-            return NONE;
+            type = FINGERPRINT;
         }
+
+        // if has face auth
+        if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FACE)
+        ){
+            // if also has fingerprint
+            if(type != NONE)
+                return MULTIPLE;
+
+            type = FACE_AUTHENTICATION;
+        }
+
+        // if has iris auth
+        if(getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_IRIS)) {
+            // if also has fingerprint or face auth
+            if(type != NONE)
+                return MULTIPLE;
+
+            type = IRIS_AUTHENTICATION;
+        }
+
+        return type;
     }
 
     @PluginMethod()
