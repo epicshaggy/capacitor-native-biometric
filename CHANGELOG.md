@@ -1,3 +1,9 @@
+#### 4.1.2 (2022-08-11)
+
+##### Bug Fixes
+
+* **android:**  correctly determine biometry type ([65fe9c6f](https://github.com/epicshaggy/capacitor-native-biometric/commit/65fe9c6f92e315f5f893327d94e44a2425f50c20))
+
 #### 4.1.1 (2022-08-10)
 
 ##### Bug Fixes
