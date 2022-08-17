@@ -78,6 +78,8 @@ public class NativeBiometric: CAPPlugin {
         var canEvaluateError: NSError?
 
         let useFallback = call.getBool("useFallback", false)
+        context.localizedFallbackTitle = useFallback ? nil : ""
+        
         let policy = useFallback ? LAPolicy.deviceOwnerAuthentication : LAPolicy.deviceOwnerAuthenticationWithBiometrics
         
         if context.canEvaluatePolicy(policy, error: &canEvaluateError){
