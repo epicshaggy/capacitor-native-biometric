@@ -1,3 +1,9 @@
+#### 4.1.3 (2022-08-19)
+
+##### Bug Fixes
+
+*  Remove AppTheme.NoAction bar fixes [#63](https://github.com/epicshaggy/capacitor-native-biometric/pull/63) ([1ec54f4f](https://github.com/epicshaggy/capacitor-native-biometric/commit/1ec54f4ff41111ae916a1e9900ddbb683c407a1a))
+
 #### 4.1.2 (2022-08-11)
 
 ##### Bug Fixes
