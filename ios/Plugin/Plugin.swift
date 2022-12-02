@@ -53,21 +53,8 @@ public class NativeBiometric: CAPPlugin {
                 call.resolve(obj)
                 return
             }
-            var errorCode = 0
-            switch authError.code {
-                case LAError.biometryNotAvailable.rawValue:
-                    errorCode = 1
-                    
-                case LAError.biometryLockout.rawValue:
-                    errorCode = 2 //"Authentication could not continue because the user has been locked out of biometric authentication, due to failing authentication too many times."
-                    
-                case LAError.biometryNotEnrolled.rawValue:
-                    errorCode = 3//message = "Authentication could not start because the user has not enrolled in biometric authentication."
-                    
-                default:
-                    errorCode = 0 //"Did not find error code on LAError object"
-            }
-            obj["errorCode"] = errorCode
+            var pluginErrorCode = convertToPluginErrorCode(authError.code)
+            obj["errorCode"] = pluginErrorCode
             call.resolve(obj)
         }
                         
@@ -89,52 +76,14 @@ public class NativeBiometric: CAPPlugin {
                 if success {
                     call.resolve()
                 }else{
-                    var errorCode = "0"
-                    guard let error = evaluateError
-                    else {
+                    guard let error = evaluateError else {
                         call.reject("Biometrics Error", "0")
                         return
                     }
                     
-                    switch error._code {
-                    
-                    case LAError.authenticationFailed.rawValue:
-                        errorCode = "10"
-                        
-                    case LAError.appCancel.rawValue:
-                        errorCode = "11"
-                        
-                    case LAError.invalidContext.rawValue:
-                        errorCode = "12"
-                        
-                    case LAError.notInteractive.rawValue:
-                        errorCode = "13"
-                        
-                    case LAError.passcodeNotSet.rawValue:
-                        errorCode = "14"
-                        
-                    case LAError.systemCancel.rawValue:
-                        errorCode = "15"
-                        
-                    case LAError.userCancel.rawValue:
-                        errorCode = "16"
-                        
-                    case LAError.userFallback.rawValue:
-                        errorCode = "17"
-
-                    case LAError.biometryNotAvailable.rawValue:
-                        errorCode = "1"
-                
-                    case LAError.biometryLockout.rawValue:
-                        errorCode = "2" //"Authentication could not continue because the user has been locked out of biometric authentication, due to failing authentication too many times."
-                
-                    case LAError.biometryNotEnrolled.rawValue:
-                        errorCode = "3" //message = "Authentication could not start because the user has not enrolled in biometric authentication."
-                        
-                    default:
-                        errorCode = "0" // Biometrics unavailable
-                    }                    
-                    call.reject(error.localizedDescription, errorCode, error )
+                    var pluginErrorCode = self.convertToPluginErrorCode(error._code)
+                    // use pluginErrorCode.description to convert Int to String 
+                    call.reject(error.localizedDescription, pluginErrorCode.description, error )
                 }
                 
             }
@@ -261,5 +210,51 @@ public class NativeBiometric: CAPPlugin {
         
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else { throw KeychainError.unhandledError(status: status) }
+    }
+
+    /**
+     * Convert Auth Error Codes to plugin expected Biometric Auth Errors (in README.md)
+     * This way both iOS and Android return the same error codes for the soame authentication failure reasons.
+     * !!IMPORTANT!!: Whenever this if modified, check if similar function in Android AuthActitivy.java needs to be modified as well.
+     * @see https://developer.apple.com/documentation/localauthentication/laerror/code
+     */
+    func convertToPluginErrorCode(_ errorCode: Int)-> Int {
+        switch errorCode {
+            case LAError.biometryNotAvailable.rawValue:
+                return 1
+
+            case LAError.biometryLockout.rawValue:
+                return 2
+        
+            case LAError.biometryNotEnrolled.rawValue:
+                return 3
+
+            case LAError.authenticationFailed.rawValue:
+                return 10
+                
+            case LAError.appCancel.rawValue:
+                return 11
+                
+            case LAError.invalidContext.rawValue:
+                return 12
+                
+            case LAError.notInteractive.rawValue:
+                return 13
+                
+            case LAError.passcodeNotSet.rawValue:
+                return 14
+                
+            case LAError.systemCancel.rawValue:
+                return 15
+                
+            case LAError.userCancel.rawValue:
+                return 16
+                
+            case LAError.userFallback.rawValue:
+                return 17
+            
+            default:
+                return 0
+        }               
     }
 }

@@ -10,6 +10,7 @@ import com.google.android.material.snackbar.Snackbar;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.biometric.BiometricConstants;
 import androidx.biometric.BiometricPrompt;
 
 import android.os.Handler;
@@ -51,12 +52,12 @@ public class AuthActivity extends AppCompatActivity {
 
         boolean useFallback = getIntent().getBooleanExtra("useFallback", false);
 
-        if(useFallback)
-        {
+        if(useFallback) {
+            // TODO: Deprecated function, probably want to migrate to `setAllowedAuthenticators`
             builder.setDeviceCredentialAllowed(true);
-        }
-        else
-        {
+        } else {
+            // Note that this option is incompatible with device credential authentication and must NOT be set if the latter is enabled via `setAllowedAuthenticators` or `setDeviceCredentialAllowed`.
+            // @see https://developer.android.com/reference/androidx/biometric/BiometricPrompt.PromptInfo.Builder#setNegativeButtonText(java.lang.CharSequence)
             builder.setNegativeButtonText(getIntent().hasExtra("negativeButtonText") ? getIntent().getStringExtra("negativeButtonText") : "Cancel");
         }
 
@@ -66,14 +67,14 @@ public class AuthActivity extends AppCompatActivity {
             @Override
             public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                 super.onAuthenticationError(errorCode, errString);
-
-                finishActivity(errString.toString(), errorCode);
+                int pluginErrorCode = AuthActivity.convertToPluginErrorCode(errorCode);
+                finishActivity("error", pluginErrorCode, errString.toString());
             }
 
             @Override
             public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                 super.onAuthenticationSucceeded(result);
-                finishActivity("success", 0);
+                finishActivity("success");
             }
 
             @Override
@@ -81,7 +82,7 @@ public class AuthActivity extends AppCompatActivity {
                 super.onAuthenticationFailed();
                 counter++;
                 if(counter == maxAttempts)
-                    finishActivity("failed");
+                    finishActivity("failed", 10, "Authentication failed.");
             }
         });
 
@@ -90,24 +91,53 @@ public class AuthActivity extends AppCompatActivity {
     }
 
     void finishActivity(String result) {
+        finishActivity(result, null, null);
+    }
+
+    void finishActivity(String result, Integer errorCode, String errorDetails) {
         Intent intent = new Intent();
-        intent.putExtra("result", "failed");
-        intent.putExtra("errorDetails", "Authentication failed.");
+        intent.putExtra("result", result);
+        if (errorCode != null) {
+            intent.putExtra("errorCode", String.valueOf(errorCode));
+        }
+        if (errorDetails != null) {
+            intent.putExtra("errorDetails", errorDetails);
+        }
         setResult(RESULT_OK, intent);
         finish();
     }
 
-    void finishActivity(String result, int errorCode) {
-        Intent intent = new Intent();
-        if(errorCode != 0){
-            intent.putExtra("result", "error");
-            intent.putExtra("errorDetails",result);
-            intent.putExtra("errorCode",String.valueOf(errorCode));
-        }else{
-            intent.putExtra("result", result);
-        }      
-        setResult(RESULT_OK, intent);
-        finish();
+    /**
+     * Convert Auth Error Codes to plugin expected Biometric Auth Errors (in README.md)
+     * This way both iOS and Android return the same error codes for the same authentication failure reasons.
+     * !!IMPORTANT!!: Whenever this is modified, check if similar function in iOS Plugin.swift needs to be modified as well
+     * @see https://developer.android.com/reference/androidx/biometric/BiometricPrompt#constants
+     * @return BiometricAuthError
+     */
+    public static int convertToPluginErrorCode(int errorCode) {
+        switch (errorCode) {
+            case BiometricConstants.ERROR_HW_UNAVAILABLE:
+            case BiometricConstants.ERROR_HW_NOT_PRESENT:
+                return 1;
+            case BiometricConstants.ERROR_LOCKOUT_PERMANENT:
+                return 2;
+            case BiometricConstants.ERROR_NO_BIOMETRICS:
+                return 3;
+            case BiometricConstants.ERROR_LOCKOUT:
+                return 4;
+            // Authentication Failure (10) Handled by `onAuthenticationFailed`.
+            // App Cancel (11), Invalid Context (12), and Not Interactive (13) are not valid error codes for Android.
+            case BiometricConstants.ERROR_NO_DEVICE_CREDENTIAL:
+                return 14;
+            case BiometricConstants.ERROR_TIMEOUT:
+            case BiometricConstants.ERROR_CANCELED:
+                return 15;
+            case BiometricConstants.ERROR_USER_CANCELED:
+            case BiometricConstants.ERROR_NEGATIVE_BUTTON:
+                return 16;
+            default:
+                return 0;
+        }
     }
 
 }
