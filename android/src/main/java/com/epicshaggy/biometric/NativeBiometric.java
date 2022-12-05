@@ -297,18 +297,6 @@ public class NativeBiometric extends Plugin {
                 paramBuilder.setIsStrongBoxBacked(true);
             }
 
-            KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
-            if (keyguardManager.isDeviceSecure()) {
-                // Key can only be generated with Authentication Required if device has a secure lock screen setup.
-                paramBuilder.setUserAuthenticationRequired(true);
-
-                // NOTE: `verifyIdentity` must be called before `generateKey` is called or `setInvalidatedByBiometricEnrollment` will use the defaulted value.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    // This applies only to keys which require user authentication, hence why we only set this after we setUserAuthenticationRequired(true)
-                    paramBuilder.setInvalidatedByBiometricEnrollment(true);
-                }
-            }
-
             generator.init(paramBuilder.build());
             return generator.generateKey();
         } else {
