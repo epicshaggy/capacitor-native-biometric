@@ -115,8 +115,16 @@ public class NativeBiometric extends Plugin {
                 ret.put("isAvailable", true);
                 break;
             default:
-                ret.put("isAvailable", false);
-                ret.put("errorCode", canAuthenticateResult);
+
+                KeyguardManager kgm = (KeyguardManager)getContext().getSystemService(Context.KEYGUARD_SERVICE);
+                kgm.createConfirmDeviceCredentialIntent("SecurityEnabled","Identificar si el dispositivo posee un metodo de seguridad implementado");
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                    boolean deviceSecure = kgm.isDeviceSecure();
+                    ret.put("isAvailable", deviceSecure);
+                } else {
+                    ret.put("isAvailable", false);
+                    ret.put("errorCode", canAuthenticateResult);
+                }
                 break;
         }
 
