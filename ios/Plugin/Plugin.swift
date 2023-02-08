@@ -149,12 +149,32 @@ public class NativeBiometric: CAPPlugin {
             call.reject("No server name was provided")
             return
         }
-        do{
-            let credentials = try getCredentialsFromKeychain(server)
-            var obj = JSObject()
-            obj["username"] = credentials.username
-            obj["password"] = credentials.password
-            call.resolve(obj)
+        
+        let reason = call.getString("reason") ?? "For biometric authentication"
+        
+        let authContext = LAContext()
+        
+        do {
+            let accessControl = try getBioSecAccessControl()
+            authContext.evaluateAccessControl(accessControl,
+                                              operation: .useItem,
+                                              localizedReason: reason) { [weak self] (laSuccess, laError) in
+                
+                do{
+                    if laSuccess, let credentials = try self?.getCredentialsFromKeychain(server,
+                                                                                         context: authContext) {
+                        var obj = JSObject()
+                        obj["username"] = credentials.username
+                        obj["password"] = credentials.password
+                        call.resolve(obj)
+                    } else {
+                        call.reject(laError?.localizedDescription ?? "Biometric error")
+                    }
+                } catch {
+                    call.reject(error.localizedDescription)
+                }
+                
+            }
         } catch {
             call.reject(error.localizedDescription)
         }
@@ -162,15 +182,19 @@ public class NativeBiometric: CAPPlugin {
     
     @objc func setCredentials(_ call: CAPPluginCall){
         
-        guard let server = call.getString("server"), let username = call.getString("username"), let password = call.getString("password") else {
+        guard   let server = call.getString("server"),
+                let username = call.getString("username"),
+                let password = call.getString("password") else {
             call.reject("Missing properties")
             return;
         }
         
+        let reason = call.getString("reason") ?? "For biometric authentication"
+        
         let credentials = Credentials(username: username, password: password)
         
         do{
-            try storeCredentialsInKeychain(credentials, server)
+            try storeCredentialsInKeychain(credentials, server, prompt:reason)
             call.resolve()
         } catch KeychainError.duplicateItem {
             do {
@@ -198,13 +222,51 @@ public class NativeBiometric: CAPPlugin {
         }
     }
     
+    private func getBioSecAccessControl() throws -> SecAccessControl {
+        var error: Unmanaged<CFError>?
+        
+        let flags: SecAccessControlCreateFlags
+        if #available(iOS 11.3, *) {
+            flags = [.privateKeyUsage, .biometryCurrentSet]
+        } else {
+            flags = [.privateKeyUsage, .touchIDCurrentSet]
+        }
+        
+        guard let access = SecAccessControlCreateWithFlags(kCFAllocatorDefault,
+                                                        kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+                                                        flags,
+                                                        &error) else {
+            throw KeychainError.unhandledError(status: 0)
+        }
+        
+        return access
+    }
     
     // Store user Credentials in Keychain
-    func storeCredentialsInKeychain(_ credentials: Credentials, _ server: String) throws {
-        let query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+    func storeCredentialsInKeychain(_ credentials: Credentials,
+                                    _ server: String,
+                                    context: LAContext? = nil,
+                                    prompt: String? = nil) throws {
+        
+        let acl = try getBioSecAccessControl()
+        var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrAccount as String: credentials.username,
                                     kSecAttrServer as String: server,
+                                    kSecAttrAccessControl as String: acl,
                                     kSecValueData as String: credentials.password.data(using: .utf8)!]
+        
+        if let context = context {
+            query[kSecUseAuthenticationContext as String] = context
+            
+            // Prevent system UI from automatically requesting Touc ID/Face ID authentication
+            // just in case someone passes here an LAContext instance without
+            // a prior evaluateAccessControl call
+            query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUISkip
+        }
+        
+        if let prompt = prompt {
+            query[kSecUseOperationPrompt as String] = prompt
+        }
         
         let status = SecItemAdd(query as CFDictionary, nil)
         
@@ -213,9 +275,28 @@ public class NativeBiometric: CAPPlugin {
     }
     
     // Update user Credentials in Keychain
-    func updateCredentialsInKeychain(_ credentials: Credentials, _ server: String) throws{
-        let query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+    func updateCredentialsInKeychain(_ credentials: Credentials,
+                                     _ server: String,
+                                     context: LAContext? = nil,
+                                     prompt: String? = nil) throws {
+        
+        let acl = try getBioSecAccessControl()
+        var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+                                    kSecAttrAccessControl as String: acl,
                                     kSecAttrServer as String: server]
+        
+        if let context = context {
+            query[kSecUseAuthenticationContext as String] = context
+            
+            // Prevent system UI from automatically requesting Touc ID/Face ID authentication
+            // just in case someone passes here an LAContext instance without
+            // a prior evaluateAccessControl call
+            query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUISkip
+        }
+        
+        if let prompt = prompt {
+            query[kSecUseOperationPrompt as String] = prompt
+        }
         
         let account = credentials.username
         let password = credentials.password.data(using: String.Encoding.utf8)!
@@ -228,12 +309,29 @@ public class NativeBiometric: CAPPlugin {
     }
     
     // Get user Credentials from Keychain
-    func getCredentialsFromKeychain(_ server: String) throws -> Credentials {
-        let query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+    func getCredentialsFromKeychain(_ server: String,
+                                    context: LAContext? = nil,
+                                    prompt: String? = nil) throws -> Credentials {
+        let acl = try getBioSecAccessControl()
+        var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrServer as String: server,
                                     kSecMatchLimit as String: kSecMatchLimitOne,
                                     kSecReturnAttributes as String: true,
+                                    kSecAttrAccessControl as String: acl,
                                     kSecReturnData as String: true]
+        
+        if let context = context {
+            query[kSecUseAuthenticationContext as String] = context
+            
+            // Prevent system UI from automatically requesting Touc ID/Face ID authentication
+            // just in case someone passes here an LAContext instance without
+            // a prior evaluateAccessControl call
+            query[kSecUseAuthenticationUI as String] = kSecUseAuthenticationUISkip
+        }
+        
+        if let prompt = prompt {
+            query[kSecUseOperationPrompt as String] = prompt
+        }
         
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
@@ -255,8 +353,9 @@ public class NativeBiometric: CAPPlugin {
     }
     
     // Delete user Credentials from Keychain
-    func deleteCredentialsFromKeychain(_ server: String)throws{
-        let query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+    func deleteCredentialsFromKeychain(_ server: String) throws {
+        
+        var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrServer as String: server]
         
         let status = SecItemDelete(query as CFDictionary)
