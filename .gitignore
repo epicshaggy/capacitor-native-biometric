@@ -1,2 +1,7 @@
 /.idea/
 dist/
+
+android/.idea/*
+ios/Plugin.xcworkspace/xcuserdata
+ios/Pods/Pods.xcodeproj/xcuserdata
+android/.gradle
