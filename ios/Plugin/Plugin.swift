@@ -194,15 +194,9 @@ public class NativeBiometric: CAPPlugin {
         let credentials = Credentials(username: username, password: password)
         
         do{
+            try? deleteCredentialsFromKeychain(server)
             try storeCredentialsInKeychain(credentials, server, prompt:reason)
             call.resolve()
-        } catch KeychainError.duplicateItem {
-            do {
-                try updateCredentialsInKeychain(credentials, server)
-                call.resolve()
-            }catch{
-                call.reject(error.localizedDescription)
-            }
         } catch {
             call.reject(error.localizedDescription)
         }
@@ -227,15 +221,16 @@ public class NativeBiometric: CAPPlugin {
         
         let flags: SecAccessControlCreateFlags
         if #available(iOS 11.3, *) {
-            flags = [.privateKeyUsage, .biometryCurrentSet]
+            flags = [.biometryCurrentSet]
         } else {
-            flags = [.privateKeyUsage, .touchIDCurrentSet]
+            flags = [.touchIDCurrentSet]
         }
         
-        guard let access = SecAccessControlCreateWithFlags(kCFAllocatorDefault,
-                                                        kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
-                                                        flags,
-                                                        &error) else {
+        guard let access = SecAccessControlCreateWithFlags(
+            kCFAllocatorDefault,
+            kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly,
+            flags,
+            &error) else {
             throw KeychainError.unhandledError(status: 0)
         }
         
@@ -355,7 +350,7 @@ public class NativeBiometric: CAPPlugin {
     // Delete user Credentials from Keychain
     func deleteCredentialsFromKeychain(_ server: String) throws {
         
-        var query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
+        let query: [String: Any] = [kSecClass as String: kSecClassInternetPassword,
                                     kSecAttrServer as String: server]
         
         let status = SecItemDelete(query as CFDictionary)
