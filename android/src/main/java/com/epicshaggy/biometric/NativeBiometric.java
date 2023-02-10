@@ -6,13 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.security.KeyPairGeneratorSpec;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
-import android.util.Base64;
 
 import androidx.activity.result.ActivityResult;
 import androidx.annotation.NonNull;
@@ -27,31 +22,7 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-
 
 @CapacitorPlugin(name = "NativeBiometric")
 public class NativeBiometric extends Plugin {
@@ -91,13 +62,13 @@ public class NativeBiometric extends Plugin {
     }
 
     public static String actionForOperation(BiometricOperation operation) {
-        return "com.epicshaggy.biometric" + operation.name();
+        return operation.name();
     }
 
     private final BroadcastReceiver onGetCredentials;
     private String lastGetCredentialsCallId;
 
-    NativeBiometric() {
+    public NativeBiometric() {
         super();
 
         onGetCredentials = new BroadcastReceiver() {
@@ -105,10 +76,11 @@ public class NativeBiometric extends Plugin {
             public void onReceive(Context context, Intent intent) {
                 String username = intent.getStringExtra(USERNAME_KEY);
                 String password = intent.getStringExtra(PASSWORD_KEY);
+                String server = intent.getStringExtra(SERVER_KEY);
                 PluginCall call = bridge.getSavedCall(lastGetCredentialsCallId);
                 lastGetCredentialsCallId = null;
 
-                if (username == null || password == null) {
+                if (username == null || password == null || server == null) {
                     call.reject("No credentials found");
                     return;
                 }
@@ -121,12 +93,17 @@ public class NativeBiometric extends Plugin {
                 JSObject credentialsResult = new JSObject();
                 credentialsResult.put(USERNAME_KEY, username);
                 credentialsResult.put(PASSWORD_KEY, password);
+                credentialsResult.put(SERVER_KEY, server);
                 call.resolve(credentialsResult);
             }
         };
+    }
 
+    @Override
+    public void load() {
         IntentFilter intentFilter = new IntentFilter(actionForOperation(BiometricOperation.GET_CREDENTIALS));
         LocalBroadcastManager.getInstance(getContext()).registerReceiver(onGetCredentials, intentFilter);
+        super.load();
     }
 
     @Override
@@ -188,7 +165,7 @@ public class NativeBiometric extends Plugin {
     @Nullable
     private Intent intentForOperation(@NonNull final PluginCall call, BiometricOperation operation) {
         Intent intent = new Intent(getContext(), AuthActivity.class);
-        intent.setAction(actionForOperation(BiometricOperation.GET_CREDENTIALS));
+        intent.setAction(actionForOperation(operation));
 
         intent.putExtra(TITLE_KEY, call.getString(TITLE_KEY, "Authenticate"));
 

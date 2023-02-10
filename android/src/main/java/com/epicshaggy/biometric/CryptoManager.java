@@ -8,6 +8,12 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
 
+import androidx.annotation.NonNull;
+
+import com.getcapacitor.JSObject;
+
+import org.json.JSONException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,40 +37,63 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class CryptoManager {
 
     private KeyStore keyStore;
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
+    private static final int KEY_SIZE = 256;
+    private static final String ENCRYPTION_BLOCK_MODE = KeyProperties.BLOCK_MODE_GCM;
+    private static final String ENCRYPTION_PADDING = KeyProperties.ENCRYPTION_PADDING_NONE;
+    private static final String ENCRYPTION_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES;
     private static final String USERNAME_KEY = "username";
     private static final String PASSWORD_KEY = "password";
 
+    private static final String CREDENTIALS_KEY = "credentials";
+    private static final String IV_KEY = "iv";
+
     private static final String NATIVE_BIOMETRIC_SHARED_PREFERENCES = "NativeBiometricSharedPreferences";
 
-    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static final String RSA_MODE = "RSA/ECB/PKCS1Padding";
     private static final String AES_MODE = "AES/ECB/PKCS7Padding";
     private static final String ENCRYPTED_KEY = "NativeBiometricKey";
 
+    @NonNull
+    private String getSharedreferenceName(String server) {
+        return NATIVE_BIOMETRIC_SHARED_PREFERENCES + "_" + server;
+    }
 
     public void saveCredentials(Credentials credentials, Cipher cipher, Context context) throws GeneralSecurityException {
         if (credentials != null && credentials.username != null && credentials.password != null && credentials.server != null) {
-            SharedPreferences.Editor editor = context.getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES + "_" + credentials.server, Context.MODE_PRIVATE).edit();
-            editor.putString(USERNAME_KEY, encryptString(credentials.username, cipher));
-            editor.putString(PASSWORD_KEY, encryptString(credentials.password, cipher));
+            SharedPreferences.Editor editor = context.getSharedPreferences(getSharedreferenceName(credentials.server), Context.MODE_PRIVATE).edit();
+            editor.putString(CREDENTIALS_KEY, encryptString(credentials.toJSON(), cipher));
+            editor.putString(IV_KEY, encodeIvString(cipher.getIV()));
             editor.apply();
         } else {
             throw new GeneralSecurityException("NULL credentials");
         }
     }
 
+    public Credentials getCredentials(String server, Cipher cipher, Context context) throws GeneralSecurityException, JSONException {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(getSharedreferenceName(server), Context.MODE_PRIVATE);
+        String encryptedCredentials = sharedPreferences.getString(CREDENTIALS_KEY, null);
+        return new Credentials(decryptString(encryptedCredentials, cipher));
+    }
+
+    public byte[] getIV(String server, Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(getSharedreferenceName(server), Context.MODE_PRIVATE);
+        String iv = sharedPreferences.getString(IV_KEY, null);
+        return decodeIvString(iv);
+    }
+
     public void deleteCredentials(String server, Context context) throws GeneralSecurityException {
         if (server != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                context.deleteSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES + "_" + server);
+                context.deleteSharedPreferences(getSharedreferenceName(server));
             } else {
-                SharedPreferences.Editor editor = context.getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES + "_" + server, Context.MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor = context.getSharedPreferences(getSharedreferenceName(server), Context.MODE_PRIVATE).edit();
                 editor.clear();
                 editor.apply();
             }
@@ -73,20 +102,17 @@ public class CryptoManager {
         }
     }
 
-    public Credentials getCredentials(String server, Cipher cipher, Context context) throws GeneralSecurityException {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES + "_" + server, Context.MODE_PRIVATE);
-        String encryptedUsername = sharedPreferences.getString(USERNAME_KEY, null);
-        String encryptedPassword = sharedPreferences.getString(PASSWORD_KEY, null);
-        return new Credentials(
-                decryptString(encryptedUsername, cipher),
-                decryptString(encryptedPassword, cipher),
-                server
-        );
-    }
-
     private String encryptString(String stringToEncrypt, Cipher cipher) throws GeneralSecurityException {
         byte[] encodedBytes = cipher.doFinal(stringToEncrypt.getBytes(StandardCharsets.UTF_8));
         return Base64.encodeToString(encodedBytes, Base64.DEFAULT);
+    }
+
+    private String encodeIvString(byte[] iv) {
+        return Base64.encodeToString(iv, Base64.DEFAULT);
+    }
+
+    private byte[] decodeIvString(String iv) {
+        return Base64.decode(iv, Base64.DEFAULT);
     }
 
     private String decryptString(String stringToDecrypt, Cipher cipher) throws GeneralSecurityException {
@@ -95,11 +121,26 @@ public class CryptoManager {
         return new String(decryptedData, StandardCharsets.UTF_8);
     }
 
-    Cipher getCipher() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
+    Cipher getCipherForEncryption(String server, Context context) throws GeneralSecurityException, IOException {
+        Cipher cipher = getCipher();
+        Key secretKey = getSecretKey(server, context);
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+        return cipher;
+    }
+
+    Cipher getCipherForDecryption(String server, Context context) throws GeneralSecurityException, IOException {
+        Cipher cipher = getCipher();
+        Key secretKey = getSecretKey(server, context);
+        byte[] iv = getIV(server,context);
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));
+        return cipher;
+    }
+
+    private Cipher getCipher() throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
         Cipher cipher;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            cipher = Cipher.getInstance(TRANSFORMATION);
+            cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM+"/"+ENCRYPTION_BLOCK_MODE+"/"+ENCRYPTION_PADDING);
         } else {
             cipher = Cipher.getInstance(AES_MODE, "BC");
         }
@@ -107,25 +148,21 @@ public class CryptoManager {
         return cipher;
     }
 
-    Key getSecretKey(String server, Context context) throws GeneralSecurityException, IOException {
-        KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) getKeyStore().getEntry(server, null);
-        if (secretKeyEntry != null) {
-            return secretKeyEntry.getSecretKey();
-        }
-        return generateKey(server, context);
+    private Key getSecretKey(String server, Context context) throws GeneralSecurityException, IOException {
+        Key secretKey = getKeyStore().getKey(server, null);
+        return secretKey != null ? secretKey : generateKey(server, context);
     }
-
 
     private Key generateKey(String server, Context context) throws GeneralSecurityException, IOException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
             KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
             KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(server, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT);
             builder
-//                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-//                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
+                    .setBlockModes(ENCRYPTION_BLOCK_MODE)
+                    .setEncryptionPaddings(ENCRYPTION_PADDING)
                     .setUserAuthenticationRequired(true)
+                    .setKeySize(KEY_SIZE)
                     .setRandomizedEncryptionRequired(false);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
