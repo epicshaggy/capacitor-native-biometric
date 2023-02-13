@@ -48,8 +48,6 @@ public class CryptoManager {
     private static final String ENCRYPTION_BLOCK_MODE = KeyProperties.BLOCK_MODE_GCM;
     private static final String ENCRYPTION_PADDING = KeyProperties.ENCRYPTION_PADDING_NONE;
     private static final String ENCRYPTION_ALGORITHM = KeyProperties.KEY_ALGORITHM_AES;
-    private static final String USERNAME_KEY = "username";
-    private static final String PASSWORD_KEY = "password";
 
     private static final String CREDENTIALS_KEY = "credentials";
     private static final String IV_KEY = "iv";
