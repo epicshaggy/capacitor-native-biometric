@@ -48,6 +48,14 @@ public class NativeBiometric: CAPPlugin {
             obj["isAvailable"] = true
             call.resolve(obj)
         } else {
+            switch context.biometryType {
+                case .touchID:
+                    obj["biometryType"] = 1
+                case .faceID:
+                    obj["biometryType"] = 2
+                default:
+                    obj["biometryType"] = 0
+            }
             guard let authError = error else {
                 obj["errorCode"] = 0
                 call.resolve(obj)
