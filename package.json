@@ -19,7 +19,7 @@
     "@capacitor/android": "^3.4.3",
     "@capacitor/ios": "^3.4.3",
     "rimraf": "^3.0.0",
-    "typescript": "^3.2.4"
+    "typescript": "^4.2.4"
   },
   "files": [
     "dist/",
