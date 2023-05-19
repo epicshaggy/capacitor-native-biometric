@@ -151,7 +151,6 @@ public class NativeBiometric extends Plugin {
 
             intent.putExtra("useFallback", useFallback);
 
-            bridge.saveCall(call);
             startActivityForResult(call, intent, "verifyResult");
     }
 
