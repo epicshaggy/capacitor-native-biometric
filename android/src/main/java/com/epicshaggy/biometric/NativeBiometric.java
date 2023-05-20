@@ -151,7 +151,6 @@ public class NativeBiometric extends Plugin {
 
             intent.putExtra("useFallback", useFallback);
 
-            bridge.saveCall(call);
             startActivityForResult(call, intent, "verifyResult");
     }
 
@@ -220,7 +219,7 @@ public class NativeBiometric extends Plugin {
                         call.reject(data.getStringExtra("errorDetails"), data.getStringExtra("errorCode"));
                         break;
                     default:
-                        call.reject("Verification error: " + data.getStringExtra("result"));
+                        call.reject("Verification error: " + data.getStringExtra("result"), data.getStringExtra("errorCode"));
                         break;
                 }
             }
