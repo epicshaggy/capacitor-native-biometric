@@ -13,6 +13,7 @@ import android.security.keystore.KeyProperties;
 import android.util.Base64;
 
 import androidx.activity.result.ActivityResult;
+import androidx.biometric.BiometricConstants;
 import androidx.biometric.BiometricManager;
 
 import com.getcapacitor.JSObject;
@@ -51,7 +52,6 @@ import javax.crypto.spec.SecretKeySpec;
 @CapacitorPlugin(name = "NativeBiometric")
 public class NativeBiometric extends Plugin {
 
-    private BiometricManager biometricManager;
     //protected final static int AUTH_CODE = 0102;
 
     private static final int NONE = 0;
@@ -64,7 +64,7 @@ public class NativeBiometric extends Plugin {
     private KeyStore keyStore;
     private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
-    private static final String RSA_MODE =  "RSA/ECB/PKCS1Padding";
+    private static final String RSA_MODE = "RSA/ECB/PKCS1Padding";
     private static final String AES_MODE = "AES/ECB/PKCS7Padding";
     private static final byte[] FIXED_IV = new byte[12];
     private static final String ENCRYPTED_KEY = "NativeBiometricKey";
@@ -82,19 +82,18 @@ public class NativeBiometric extends Plugin {
         }
 
         // if has face auth
-        if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FACE)
-        ){
+        if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FACE)) {
             // if also has fingerprint
-            if(type != NONE)
+            if (type != NONE)
                 return MULTIPLE;
 
             type = FACE_AUTHENTICATION;
         }
 
         // if has iris auth
-        if(getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_IRIS)) {
+        if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_IRIS)) {
             // if also has fingerprint or face auth
-            if(type != NONE)
+            if (type != NONE)
                 return MULTIPLE;
 
             type = IRIS_AUTHENTICATION;
@@ -107,17 +106,25 @@ public class NativeBiometric extends Plugin {
     public void isAvailable(PluginCall call) {
         JSObject ret = new JSObject();
 
-        biometricManager = BiometricManager.from(getContext());
-        int canAuthenticateResult = biometricManager.canAuthenticate();
+        boolean useFallback = Boolean.TRUE.equals(call.getBoolean("useFallback", false));
 
-        switch (canAuthenticateResult) {
-            case BiometricManager.BIOMETRIC_SUCCESS:
-                ret.put("isAvailable", true);
-                break;
-            default:
-                ret.put("isAvailable", false);
-                ret.put("errorCode", canAuthenticateResult);
-                break;
+        BiometricManager biometricManager = BiometricManager.from(getContext());
+        int canAuthenticateResult = biometricManager.canAuthenticate();
+        // Using deviceHasCredentials instead of canAuthenticate(DEVICE_CREDENTIAL)
+        // > "Developers that wish to check for the presence of a PIN, pattern, or password on these versions should instead use isDeviceSecure."
+        // @see https://developer.android.com/reference/androidx/biometric/BiometricManager#canAuthenticate(int)
+        boolean fallbackAvailable = useFallback && this.deviceHasCredentials();
+        if (useFallback && !fallbackAvailable) {
+            canAuthenticateResult = BiometricConstants.ERROR_NO_DEVICE_CREDENTIAL;
+        }
+
+        boolean isAvailable = (canAuthenticateResult == BiometricManager.BIOMETRIC_SUCCESS || fallbackAvailable);
+        ret.put("isAvailable", isAvailable);
+
+        if (!isAvailable) {
+            // BiometricManager Error Constants use the same values as BiometricPrompt's Constants. So we can reuse our
+            int pluginErrorCode = AuthActivity.convertToPluginErrorCode(canAuthenticateResult);
+            ret.put("errorCode", pluginErrorCode);
         }
 
         ret.put("biometryType", getAvailableFeature());
@@ -126,55 +133,54 @@ public class NativeBiometric extends Plugin {
 
     @PluginMethod()
     public void verifyIdentity(final PluginCall call) {
-            Intent intent = new Intent(getContext(), AuthActivity.class);
+        Intent intent = new Intent(getContext(), AuthActivity.class);
 
-            intent.putExtra("title", call.getString("title", "Authenticate"));
+        intent.putExtra("title", call.getString("title", "Authenticate"));
 
-            if(call.hasOption("subtitle"))
-                intent.putExtra("subtitle", call.getString("subtitle"));
+        if (call.hasOption("subtitle")) {
+            intent.putExtra("subtitle", call.getString("subtitle"));
+        }
 
-            if(call.hasOption("description"))
-                intent.putExtra("description", call.getString("description"));
+        if (call.hasOption("description")) {
+            intent.putExtra("description", call.getString("description"));
+        }
 
-            if(call.hasOption("negativeButtonText"))
-                intent.putExtra("negativeButtonText", call.getString("negativeButtonText"));
+        if (call.hasOption("negativeButtonText")) {
+            intent.putExtra("negativeButtonText", call.getString("negativeButtonText"));
+        }
 
-            if(call.hasOption("maxAttempts"))
-                intent.putExtra("maxAttempts", call.getInt("maxAttempts"));
+        if (call.hasOption("maxAttempts")) {
+            intent.putExtra("maxAttempts", call.getInt("maxAttempts"));
+        }
 
-            boolean useFallback = call.getBoolean("useFallback", false);
+        boolean useFallback = Boolean.TRUE.equals(call.getBoolean("useFallback", false));
+        if (useFallback) {
+            useFallback = this.deviceHasCredentials();
+        }
 
-            if (useFallback && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
-                useFallback = keyguardManager.isDeviceSecure();
-            }
+        intent.putExtra("useFallback", useFallback);
 
-            intent.putExtra("useFallback", useFallback);
-
-            startActivityForResult(call, intent, "verifyResult");
+        startActivityForResult(call, intent, "verifyResult");
     }
 
     @PluginMethod()
-    public void setCredentials(final PluginCall call){
+    public void setCredentials(final PluginCall call) {
         String username = call.getString("username", null);
         String password = call.getString("password", null);
         String KEY_ALIAS = call.getString("server", null);
 
-        if(username != null && password != null && KEY_ALIAS != null){
+        if (username != null && password != null && KEY_ALIAS != null) {
             try {
                 SharedPreferences.Editor editor = getContext().getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES, Context.MODE_PRIVATE).edit();
                 editor.putString("username", encryptString(username, KEY_ALIAS));
                 editor.putString("password", encryptString(password, KEY_ALIAS));
                 editor.apply();
                 call.resolve();
-            } catch (GeneralSecurityException e) {
-                call.reject("Failed to save credentials", e);
-                e.printStackTrace();
-            } catch (IOException e) {
+            } catch (GeneralSecurityException | IOException e) {
                 call.reject("Failed to save credentials", e);
                 e.printStackTrace();
             }
-        }else{
+        } else {
             call.reject("Missing properties");
         }
     }
@@ -193,10 +199,10 @@ public class NativeBiometric extends Plugin {
                     jsObject.put("username", decryptString(username, KEY_ALIAS));
                     jsObject.put("password", decryptString(password, KEY_ALIAS));
                     call.resolve(jsObject);
-                } catch (GeneralSecurityException e) {
-                    call.reject("Failed to get credentials", e);
-                } catch (IOException e) {
-                    call.reject("Failed to get credentials", e);
+                } catch (GeneralSecurityException | IOException e) {
+                    // Can get here if not authenticated.
+                    String errorMessage = "Failed to get credentials";
+                    call.reject(errorMessage);
                 }
             } else {
                 call.reject("No credentials found");
@@ -207,19 +213,21 @@ public class NativeBiometric extends Plugin {
     }
 
     @ActivityCallback
-    private void verifyResult(PluginCall call, ActivityResult result){
-        if(result.getResultCode() == Activity.RESULT_OK) {
+    private void verifyResult(PluginCall call, ActivityResult result) {
+        if (result.getResultCode() == Activity.RESULT_OK) {
             Intent data = result.getData();
-            if (data.hasExtra("result")) {
+            if (data != null && data.hasExtra("result")) {
                 switch (data.getStringExtra("result")) {
                     case "success":
                         call.resolve();
                         break;
                     case "failed":
+                    case "error":
                         call.reject(data.getStringExtra("errorDetails"), data.getStringExtra("errorCode"));
                         break;
                     default:
-                        call.reject("Verification error: " + data.getStringExtra("result"), data.getStringExtra("errorCode"));
+                        // Should not get to here unless AuthActivity starts returning different Activity Results.
+                        call.reject("Something went wrong.");
                         break;
                 }
             }
@@ -229,36 +237,30 @@ public class NativeBiometric extends Plugin {
     }
 
     @PluginMethod()
-    public void deleteCredentials(final PluginCall call){
+    public void deleteCredentials(final PluginCall call) {
         String KEY_ALIAS = call.getString("server", null);
 
-        if(KEY_ALIAS != null){
+        if (KEY_ALIAS != null) {
             try {
                 getKeyStore().deleteEntry(KEY_ALIAS);
                 SharedPreferences.Editor editor = getContext().getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES, Context.MODE_PRIVATE).edit();
                 editor.clear();
                 editor.apply();
                 call.resolve();
-            } catch (KeyStoreException e) {
-                call.reject("Failed to delete", e);
-            } catch (CertificateException e) {
-                call.reject("Failed to delete", e);
-            } catch (NoSuchAlgorithmException e) {
-                call.reject("Failed to delete", e);
-            } catch (IOException e) {
+            } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
                 call.reject("Failed to delete", e);
             }
-        }else{
+        } else {
             call.reject("No server name was provided");
         }
     }
 
     private String encryptString(String stringToEncrypt, String KEY_ALIAS) throws GeneralSecurityException, IOException {
         Cipher cipher;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.ENCRYPT_MODE, getKey(KEY_ALIAS), new GCMParameterSpec(128, FIXED_IV));
-        }else{
+        } else {
             cipher = Cipher.getInstance(AES_MODE, "BC");
             cipher.init(Cipher.ENCRYPT_MODE, getKey(KEY_ALIAS));
         }
@@ -270,10 +272,10 @@ public class NativeBiometric extends Plugin {
         byte[] encryptedData = Base64.decode(stringToDecrypt, Base64.DEFAULT);
 
         Cipher cipher;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             cipher = Cipher.getInstance(TRANSFORMATION);
             cipher.init(Cipher.DECRYPT_MODE, getKey(KEY_ALIAS), new GCMParameterSpec(128, FIXED_IV));
-        }else{
+        } else {
             cipher = Cipher.getInstance(AES_MODE, "BC");
             cipher.init(Cipher.DECRYPT_MODE, getKey(KEY_ALIAS));
         }
@@ -281,20 +283,20 @@ public class NativeBiometric extends Plugin {
         return new String(decryptedData, "UTF-8");
     }
 
-
-
-
-    private Key generateKey(String KEY_ALIAS) throws GeneralSecurityException, IOException{
+    private Key generateKey(String KEY_ALIAS) throws GeneralSecurityException, IOException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
-            generator.init(new KeyGenParameterSpec.Builder(
-                    KEY_ALIAS,
-                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+            KeyGenParameterSpec.Builder paramBuilder = new KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
                     .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setRandomizedEncryptionRequired(false)
-                    .build()
-            );
+                    .setRandomizedEncryptionRequired(false);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                paramBuilder.setUnlockedDeviceRequired(true);
+                paramBuilder.setIsStrongBoxBacked(true);
+            }
+
+            generator.init(paramBuilder.build());
             return generator.generateKey();
         } else {
             return getAESKey(KEY_ALIAS);
@@ -310,19 +312,17 @@ public class NativeBiometric extends Plugin {
     }
 
     private KeyStore getKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        if (keyStore != null) {
-            return keyStore;
-        } else {
+        if (keyStore == null) {
             keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
             keyStore.load(null);
-            return keyStore;
         }
+        return keyStore;
     }
 
     private Key getAESKey(String KEY_ALIAS) throws CertificateException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, UnrecoverableEntryException, IOException, InvalidAlgorithmParameterException {
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("", Context.MODE_PRIVATE);
         String encryptedKeyB64 = sharedPreferences.getString(ENCRYPTED_KEY, null);
-        if(encryptedKeyB64 == null){
+        if (encryptedKeyB64 == null) {
             byte[] key = new byte[16];
             SecureRandom secureRandom = new SecureRandom();
             secureRandom.nextBytes(key);
@@ -332,7 +332,7 @@ public class NativeBiometric extends Plugin {
             edit.putString(ENCRYPTED_KEY, encryptedKeyB64);
             edit.apply();
             return new SecretKeySpec(key, "AES");
-        }else{
+        } else {
             byte[] encryptedKey = Base64.decode(encryptedKeyB64, Base64.DEFAULT);
             byte[] key = rsaDecrypt(encryptedKey, KEY_ALIAS);
             return new SecretKeySpec(key, "AES");
@@ -342,7 +342,7 @@ public class NativeBiometric extends Plugin {
     private KeyStore.PrivateKeyEntry getPrivateKeyEntry(String KEY_ALIAS) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, CertificateException, KeyStoreException, IOException, UnrecoverableEntryException {
         KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) getKeyStore().getEntry(KEY_ALIAS, null);
 
-        if(privateKeyEntry == null){
+        if (privateKeyEntry == null) {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, ANDROID_KEY_STORE);
             keyPairGenerator.initialize(new KeyPairGeneratorSpec.Builder(getContext())
                     .setAlias(KEY_ALIAS)
@@ -368,7 +368,7 @@ public class NativeBiometric extends Plugin {
         return vals;
     }
 
-    private  byte[]  rsaDecrypt(byte[] encrypted, String KEY_ALIAS) throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IOException, CertificateException, InvalidAlgorithmParameterException {
+    private byte[] rsaDecrypt(byte[] encrypted, String KEY_ALIAS) throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IOException, CertificateException, InvalidAlgorithmParameterException {
         KeyStore.PrivateKeyEntry privateKeyEntry = getPrivateKeyEntry(KEY_ALIAS);
         Cipher output = Cipher.getInstance(RSA_MODE, "AndroidOpenSSL");
         output.init(Cipher.DECRYPT_MODE, privateKeyEntry.getPrivateKey());
@@ -377,13 +377,19 @@ public class NativeBiometric extends Plugin {
         ArrayList<Byte> values = new ArrayList<>();
         int nextByte;
         while ((nextByte = cipherInputStream.read()) != -1) {
-            values.add((byte)nextByte);
+            values.add((byte) nextByte);
         }
 
         byte[] bytes = new byte[values.size()];
-        for(int i = 0; i < bytes.length; i++) {
+        for (int i = 0; i < bytes.length; i++) {
             bytes[i] = values.get(i).byteValue();
         }
         return bytes;
+    }
+
+    private boolean deviceHasCredentials() {
+        KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
+        // Can only use fallback if the device has a pin/pattern/password lockscreen.
+        return keyguardManager.isDeviceSecure();
     }
 }
