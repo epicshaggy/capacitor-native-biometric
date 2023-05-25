@@ -172,8 +172,8 @@ public class NativeBiometric extends Plugin {
         if (username != null && password != null && KEY_ALIAS != null) {
             try {
                 SharedPreferences.Editor editor = getContext().getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES, Context.MODE_PRIVATE).edit();
-                editor.putString("username", encryptString(username, KEY_ALIAS));
-                editor.putString("password", encryptString(password, KEY_ALIAS));
+                editor.putString(KEY_ALIAS + "-username", encryptString(username, KEY_ALIAS));
+                editor.putString(KEY_ALIAS + "-password", encryptString(password, KEY_ALIAS));
                 editor.apply();
                 call.resolve();
             } catch (GeneralSecurityException | IOException e) {
@@ -190,8 +190,8 @@ public class NativeBiometric extends Plugin {
         String KEY_ALIAS = call.getString("server", null);
 
         SharedPreferences sharedPreferences = getContext().getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        String username = sharedPreferences.getString("username", null);
-        String password = sharedPreferences.getString("password", null);
+        String username = sharedPreferences.getString(KEY_ALIAS + "-username", null);
+        String password = sharedPreferences.getString(KEY_ALIAS + "-password", null);
         if (KEY_ALIAS != null) {
             if (username != null && password != null) {
                 try {
