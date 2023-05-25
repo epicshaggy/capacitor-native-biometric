@@ -17,6 +17,7 @@ buildscript {
 apply plugin: 'com.android.library'
 
 android {
+    namespace "com.epicshaggy.biometric.capacitornativebiometric"
     compileSdkVersion project.hasProperty('compileSdkVersion') ? rootProject.ext.compileSdkVersion : 29
     defaultConfig {
         minSdkVersion project.hasProperty('minSdkVersion') ? rootProject.ext.minSdkVersion : 21
