@@ -192,10 +192,6 @@ public class MainActivity extends BridgeActivity {
 
 Learn about contributing [HERE](./CONTRIBUTING.md)
 
-### Want to Contribute?
-
-Learn about contributing [HERE](./CONTRIBUTING.md)
-
 ## Notes
 
 Hasn't been tested on Android API level 22 or lower.
