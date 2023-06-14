@@ -1,4 +1,4 @@
 /.idea/
 dist/
-capacitor-native-biometric-4.1.3.tgz
+*.tgz
 /node_modules

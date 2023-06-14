@@ -10,6 +10,7 @@ import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.security.keystore.StrongBoxUnavailableException;
 import android.util.Base64;
 
 import androidx.activity.result.ActivityResult;
@@ -283,7 +284,17 @@ public class NativeBiometric extends Plugin {
         return new String(decryptedData, "UTF-8");
     }
 
+    @SuppressLint("NewAPI") // API level is already checked
     private Key generateKey(String KEY_ALIAS) throws GeneralSecurityException, IOException {
+        Key key;
+        try {
+            key = generateKey(KEY_ALIAS, true);
+        } catch (StrongBoxUnavailableException e){
+            key = generateKey(KEY_ALIAS, false);
+        }
+        return key;
+    }
+    private Key generateKey(String KEY_ALIAS, boolean isStrongBoxBacked) throws GeneralSecurityException, IOException, StrongBoxUnavailableException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
             KeyGenParameterSpec.Builder paramBuilder = new KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
@@ -293,7 +304,7 @@ public class NativeBiometric extends Plugin {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 paramBuilder.setUnlockedDeviceRequired(true);
-                paramBuilder.setIsStrongBoxBacked(true);
+                paramBuilder.setIsStrongBoxBacked(isStrongBoxBacked);
             }
 
             generator.init(paramBuilder.build());
