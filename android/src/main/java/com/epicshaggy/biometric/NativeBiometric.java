@@ -6,16 +6,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.Build;
-import android.security.KeyPairGeneratorSpec;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
-import android.security.keystore.StrongBoxUnavailableException;
-import android.util.Base64;
+import android.util.Log;
 
 import androidx.activity.result.ActivityResult;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.biometric.BiometricConstants;
 import androidx.biometric.BiometricManager;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.EncryptedSharedPreferences.PrefKeyEncryptionScheme;
+import androidx.security.crypto.EncryptedSharedPreferences.PrefValueEncryptionScheme;
+import androidx.security.crypto.MasterKeys;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -24,32 +25,8 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.KeyGenerator;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.spec.GCMParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
-import android.annotation.SuppressLint;
-
 
 
 @CapacitorPlugin(name = "NativeBiometric")
@@ -63,29 +40,21 @@ public class NativeBiometric extends Plugin {
     private static final int IRIS_AUTHENTICATION = 5;
     private static final int MULTIPLE = 6;
 
-
-    private KeyStore keyStore;
-    private static final String ANDROID_KEY_STORE = "AndroidKeyStore";
-    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
-    private static final String RSA_MODE = "RSA/ECB/PKCS1Padding";
-    private static final String AES_MODE = "AES/ECB/PKCS7Padding";
-    private static final byte[] FIXED_IV = new byte[12];
-    private static final String ENCRYPTED_KEY = "NativeBiometricKey";
     private static final String NATIVE_BIOMETRIC_SHARED_PREFERENCES = "NativeBiometricSharedPreferences";
 
-    private SharedPreferences encryptedSharedPreferences;
-
     private int getAvailableFeature() {
+        PackageManager packageManager = getContext().getPackageManager();
+
         // default to none
         int type = NONE;
 
         // if has fingerprint
-        if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
             type = FINGERPRINT;
         }
 
         // if has face auth
-        if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_FACE)) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_FACE)) {
             // if also has fingerprint
             if (type != NONE)
                 return MULTIPLE;
@@ -94,7 +63,7 @@ public class NativeBiometric extends Plugin {
         }
 
         // if has iris auth
-        if (getContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_IRIS)) {
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_IRIS)) {
             // if also has fingerprint or face auth
             if (type != NONE)
                 return MULTIPLE;
@@ -170,48 +139,45 @@ public class NativeBiometric extends Plugin {
     public void setCredentials(final PluginCall call) {
         String username = call.getString("username", null);
         String password = call.getString("password", null);
-        String KEY_ALIAS = call.getString("server", null);
+        String keyAlias = getKeyAlias(call);
 
-        if (username != null && password != null && KEY_ALIAS != null) {
+        if (username != null && password != null && keyAlias != null) {
             try {
-                SharedPreferences.Editor editor = getContext().getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES, Context.MODE_PRIVATE).edit();
-                editor.putString(KEY_ALIAS + "-username", encryptString(username, KEY_ALIAS));
-                editor.putString(KEY_ALIAS + "-password", encryptString(password, KEY_ALIAS));
+                SharedPreferences.Editor editor = getSharedPreferences().edit();
+                editor.putString(keyAlias + "-username", username);
+                editor.putString(keyAlias + "-password", password);
                 editor.apply();
                 call.resolve();
             } catch (GeneralSecurityException | IOException e) {
                 call.reject("Failed to save credentials", e);
-                e.printStackTrace();
             }
         } else {
-            call.reject("Missing properties");
+            call.reject("No username, password, and/or server provided");
         }
     }
 
     @PluginMethod()
-    public void getCredentials(final PluginCall call) {
-        String KEY_ALIAS = call.getString("server", null);
-
-        SharedPreferences sharedPreferences = getContext().getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        String username = sharedPreferences.getString(KEY_ALIAS + "-username", null);
-        String password = sharedPreferences.getString(KEY_ALIAS + "-password", null);
-        if (KEY_ALIAS != null) {
-            if (username != null && password != null) {
-                try {
+    public void getCredentials(final PluginCall call) throws GeneralSecurityException, IOException {
+        String keyAlias = getKeyAlias(call);
+        if (keyAlias != null) {
+            try {
+                SharedPreferences sharedPreferences = getSharedPreferences();
+                String username = sharedPreferences.getString(keyAlias + "-username", null);
+                String password = sharedPreferences.getString(keyAlias + "-password", null);
+                if (username != null && password != null) {
                     JSObject jsObject = new JSObject();
-                    jsObject.put("username", decryptString(username, KEY_ALIAS));
-                    jsObject.put("password", decryptString(password, KEY_ALIAS));
+                    jsObject.put("username", username);
+                    jsObject.put("password", password);
                     call.resolve(jsObject);
-                } catch (GeneralSecurityException | IOException e) {
-                    // Can get here if not authenticated.
-                    String errorMessage = "Failed to get credentials";
-                    call.reject(errorMessage);
+                } else {
+                    call.reject("No credentials found");
                 }
-            } else {
-                call.reject("No credentials found");
+            }
+            catch (Exception e) {
+                call.reject("Error getting credentials", e);
             }
         } else {
-            call.reject("No server name was provided");
+            call.reject("No server provided");
         }
     }
 
@@ -230,179 +196,48 @@ public class NativeBiometric extends Plugin {
                         break;
                     default:
                         // Should not get to here unless AuthActivity starts returning different Activity Results.
-                        call.reject("Something went wrong.");
+                        call.reject("Something went wrong; unexpected activity result = " + data.getStringExtra("result"));
                         break;
                 }
             }
         } else {
-            call.reject("Something went wrong.");
+            call.reject("Something went wrong; unexpected resultCode = " + result.getResultCode());
         }
     }
 
     @PluginMethod()
     public void deleteCredentials(final PluginCall call) {
-        String KEY_ALIAS = call.getString("server", null);
-
-        if (KEY_ALIAS != null) {
+        String keyAlias = getKeyAlias(call);
+        if (keyAlias != null) {
             try {
-                getKeyStore().deleteEntry(KEY_ALIAS);
-                SharedPreferences.Editor editor = getContext().getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES, Context.MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor = getSharedPreferences().edit();
                 editor.clear();
                 editor.apply();
                 call.resolve();
-            } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
-                call.reject("Failed to delete", e);
+            } catch (GeneralSecurityException | IOException e) {
+                call.reject("Failed to delete credentials", e);
             }
         } else {
-            call.reject("No server name was provided");
+            call.reject("No server provided");
         }
-    }
-
-    private String encryptString(String stringToEncrypt, String KEY_ALIAS) throws GeneralSecurityException, IOException {
-        Cipher cipher;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            cipher = Cipher.getInstance(TRANSFORMATION);
-            cipher.init(Cipher.ENCRYPT_MODE, getKey(KEY_ALIAS), new GCMParameterSpec(128, FIXED_IV));
-        } else {
-            cipher = Cipher.getInstance(AES_MODE, "BC");
-            cipher.init(Cipher.ENCRYPT_MODE, getKey(KEY_ALIAS));
-        }
-        byte[] encodedBytes = cipher.doFinal(stringToEncrypt.getBytes("UTF-8"));
-        return Base64.encodeToString(encodedBytes, Base64.DEFAULT);
-    }
-
-    private String decryptString(String stringToDecrypt, String KEY_ALIAS) throws GeneralSecurityException, IOException {
-        byte[] encryptedData = Base64.decode(stringToDecrypt, Base64.DEFAULT);
-
-        Cipher cipher;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            cipher = Cipher.getInstance(TRANSFORMATION);
-            cipher.init(Cipher.DECRYPT_MODE, getKey(KEY_ALIAS), new GCMParameterSpec(128, FIXED_IV));
-        } else {
-            cipher = Cipher.getInstance(AES_MODE, "BC");
-            cipher.init(Cipher.DECRYPT_MODE, getKey(KEY_ALIAS));
-        }
-        byte[] decryptedData = cipher.doFinal(encryptedData);
-        return new String(decryptedData, "UTF-8");
-    }
-
-    @SuppressLint("NewAPI") // API level is already checked
-    private Key generateKey(String KEY_ALIAS) throws GeneralSecurityException, IOException {
-        Key key;
-        try {
-            key = generateKey(KEY_ALIAS, true);
-        } catch (StrongBoxUnavailableException e){
-            key = generateKey(KEY_ALIAS, false);
-        }
-        return key;
-    }
-    private Key generateKey(String KEY_ALIAS, boolean isStrongBoxBacked) throws GeneralSecurityException, IOException, StrongBoxUnavailableException {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEY_STORE);
-            KeyGenParameterSpec.Builder paramBuilder = new KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
-                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .setRandomizedEncryptionRequired(false);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                paramBuilder.setUnlockedDeviceRequired(true);
-                paramBuilder.setIsStrongBoxBacked(isStrongBoxBacked);
-            }
-
-            generator.init(paramBuilder.build());
-            return generator.generateKey();
-        } else {
-            return getAESKey(KEY_ALIAS);
-        }
-    }
-
-    private Key getKey(String KEY_ALIAS) throws GeneralSecurityException, IOException {
-        KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) getKeyStore().getEntry(KEY_ALIAS, null);
-        if (secretKeyEntry != null) {
-            return secretKeyEntry.getSecretKey();
-        }
-        return generateKey(KEY_ALIAS);
-    }
-
-    private KeyStore getKeyStore() throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        if (keyStore == null) {
-            keyStore = KeyStore.getInstance(ANDROID_KEY_STORE);
-            keyStore.load(null);
-        }
-        return keyStore;
-    }
-
-    private Key getAESKey(String KEY_ALIAS) throws CertificateException, NoSuchPaddingException, InvalidKeyException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, UnrecoverableEntryException, IOException, InvalidAlgorithmParameterException {
-        SharedPreferences sharedPreferences = getContext().getSharedPreferences("", Context.MODE_PRIVATE);
-        String encryptedKeyB64 = sharedPreferences.getString(ENCRYPTED_KEY, null);
-        if (encryptedKeyB64 == null) {
-            byte[] key = new byte[16];
-            SecureRandom secureRandom = new SecureRandom();
-            secureRandom.nextBytes(key);
-            byte[] encryptedKey = rsaEncrypt(key, KEY_ALIAS);
-            encryptedKeyB64 = Base64.encodeToString(encryptedKey, Base64.DEFAULT);
-            SharedPreferences.Editor edit = sharedPreferences.edit();
-            edit.putString(ENCRYPTED_KEY, encryptedKeyB64);
-            edit.apply();
-            return new SecretKeySpec(key, "AES");
-        } else {
-            byte[] encryptedKey = Base64.decode(encryptedKeyB64, Base64.DEFAULT);
-            byte[] key = rsaDecrypt(encryptedKey, KEY_ALIAS);
-            return new SecretKeySpec(key, "AES");
-        }
-    }
-
-    private KeyStore.PrivateKeyEntry getPrivateKeyEntry(String KEY_ALIAS) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, CertificateException, KeyStoreException, IOException, UnrecoverableEntryException {
-        KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) getKeyStore().getEntry(KEY_ALIAS, null);
-
-        if (privateKeyEntry == null) {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA, ANDROID_KEY_STORE);
-            keyPairGenerator.initialize(new KeyPairGeneratorSpec.Builder(getContext())
-                    .setAlias(KEY_ALIAS)
-                    .build());
-            keyPairGenerator.generateKeyPair();
-        }
-
-        return privateKeyEntry;
-    }
-
-    private byte[] rsaEncrypt(byte[] secret, String KEY_ALIAS) throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, UnrecoverableEntryException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
-        KeyStore.PrivateKeyEntry privateKeyEntry = getPrivateKeyEntry(KEY_ALIAS);
-        // Encrypt the text
-        Cipher inputCipher = Cipher.getInstance(RSA_MODE, "AndroidOpenSSL");
-        inputCipher.init(Cipher.ENCRYPT_MODE, privateKeyEntry.getCertificate().getPublicKey());
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, inputCipher);
-        cipherOutputStream.write(secret);
-        cipherOutputStream.close();
-
-        byte[] vals = outputStream.toByteArray();
-        return vals;
-    }
-
-    private byte[] rsaDecrypt(byte[] encrypted, String KEY_ALIAS) throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, NoSuchProviderException, NoSuchPaddingException, InvalidKeyException, IOException, CertificateException, InvalidAlgorithmParameterException {
-        KeyStore.PrivateKeyEntry privateKeyEntry = getPrivateKeyEntry(KEY_ALIAS);
-        Cipher output = Cipher.getInstance(RSA_MODE, "AndroidOpenSSL");
-        output.init(Cipher.DECRYPT_MODE, privateKeyEntry.getPrivateKey());
-        CipherInputStream cipherInputStream = new CipherInputStream(
-                new ByteArrayInputStream(encrypted), output);
-        ArrayList<Byte> values = new ArrayList<>();
-        int nextByte;
-        while ((nextByte = cipherInputStream.read()) != -1) {
-            values.add((byte) nextByte);
-        }
-
-        byte[] bytes = new byte[values.size()];
-        for (int i = 0; i < bytes.length; i++) {
-            bytes[i] = values.get(i).byteValue();
-        }
-        return bytes;
     }
 
     private boolean deviceHasCredentials() {
         KeyguardManager keyguardManager = (KeyguardManager) getActivity().getSystemService(Context.KEYGUARD_SERVICE);
         // Can only use fallback if the device has a pin/pattern/password lockscreen.
         return keyguardManager.isDeviceSecure();
+    }
+
+    @Nullable
+    private String getKeyAlias(PluginCall call) {
+        return call.getString("server", null);
+    }
+
+    @NonNull
+    private SharedPreferences getSharedPreferences() throws GeneralSecurityException, IOException {
+        String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+        return EncryptedSharedPreferences.create(
+                NATIVE_BIOMETRIC_SHARED_PREFERENCES, masterKeyAlias, getContext(),
+                PrefKeyEncryptionScheme.AES256_SIV, PrefValueEncryptionScheme.AES256_GCM);
     }
 }
