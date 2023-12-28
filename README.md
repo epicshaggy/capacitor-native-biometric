@@ -101,21 +101,21 @@ NativeBiometric.deleteCredentials({
 
 This is a plugin specific list of error codes that can be thrown on verifyIdentity failure, or set as a part of isAvailable. It consolidates Android and iOS specific Authentication Error codes into one combined error list.
 
-| Code | Description                 | Platform                     |
-| ---- | --------------------------- | ---------------------------- |
-| 0    | Unknown Error               | Android, iOS                 |
-| 1    | Biometrics Unavailable      | Android, iOS                 |
-| 2    | User Lockout                | Android, iOS                 |
-| 3    | Biometrics Not Enrolled     | Android, iOS                 |
-| 4    | User Temporary Lockout      | Android (Lockout for 30sec)  |
-| 10   | Authentication Failed       | Android, iOS                 |
-| 11   | App Cancel                  | iOS                          |
-| 12   | Invalid Context             | iOS                          |
-| 13   | Not Interactive             | iOS                          |
-| 14   | Passcode Not Set            | Android, iOS                 |
-| 15   | System Cancel               | Android, iOS                 |
-| 16   | User Cancel                 | Android, iOS                 |
-| 17   | User Fallback               | Android, iOS                 |
+| Code | Description             | Platform                    |
+| ---- | ----------------------- | --------------------------- |
+| 0    | Unknown Error           | Android, iOS                |
+| 1    | Biometrics Unavailable  | Android, iOS                |
+| 2    | User Lockout            | Android, iOS                |
+| 3    | Biometrics Not Enrolled | Android, iOS                |
+| 4    | User Temporary Lockout  | Android (Lockout for 30sec) |
+| 10   | Authentication Failed   | Android, iOS                |
+| 11   | App Cancel              | iOS                         |
+| 12   | Invalid Context         | iOS                         |
+| 13   | Not Interactive         | iOS                         |
+| 14   | Passcode Not Set        | Android, iOS                |
+| 15   | System Cancel           | Android, iOS                |
+| 16   | User Cancel             | Android, iOS                |
+| 17   | User Fallback           | Android, iOS                |
 
 ### SetCredentialOptions
 
@@ -160,7 +160,7 @@ This value is just the reason for using FaceID. You can add something like the f
 To use android's BiometricPrompt api you must add the following permission to your AndroidManifest.xml:
 
 ```xml
-<uses-permission android:name="android.permission.USE_BIOMETRIC">
+<uses-permission android:name="android.permission.USE_BIOMETRIC" />
 ```
 
 And register the plugin by adding it to you MainActivity's onCreate (Not needed for Capacitor 3):
@@ -189,6 +189,7 @@ public class MainActivity extends BridgeActivity {
 [One Click Web Studio](https://github.com/oneclickwebstudio)
 [Brian Weasner](https://github.com/brian-weasner)
 [Mohamed Diarra](https://github.com/mohdiarra)
+
 ### Want to Contribute?
 
 Learn about contributing [HERE](./CONTRIBUTING.md)
