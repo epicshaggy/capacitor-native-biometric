@@ -247,7 +247,8 @@ public class NativeBiometric extends Plugin {
             try {
                 getKeyStore().deleteEntry(KEY_ALIAS);
                 SharedPreferences.Editor editor = getContext().getSharedPreferences(NATIVE_BIOMETRIC_SHARED_PREFERENCES, Context.MODE_PRIVATE).edit();
-                editor.clear();
+                editor.remove(KEY_ALIAS + "-username");
+                editor.remove(KEY_ALIAS + "-password");
                 editor.apply();
                 call.resolve();
             } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
