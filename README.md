@@ -1,5 +1,7 @@
 # Capacitor Native Biometric
 
+Not maintained anymore use [Capgo fork](https://github.com/Cap-go/capacitor-native-biometric)
+
 Use biometrics confirm device owner presence or authenticate users. A couple of methods are provided to handle user credentials. These are securely stored using Keychain (iOS) and Keystore (Android).
 
 ## Installation (Only supports Capacitor 3 and 4)
