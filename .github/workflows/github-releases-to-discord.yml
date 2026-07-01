@@ -1,0 +1,25 @@
+name: GitHub Releases to Discord
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  github-releases-to-discord:
+    runs-on: ubuntu-latest
+    # Keep this job capped at 10 minutes; never raise it unless explicitly asked.
+    timeout-minutes: 10
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: GitHub Releases to Discord
+        uses: SethCohen/github-releases-to-discord@v1
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_DISCORD_RELEASE_URL }}
+          color: "2105893"
+          footer_title: "Release @${{ github.repository }}"
+          reduce_headings: true

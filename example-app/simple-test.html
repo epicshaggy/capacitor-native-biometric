@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Biometric Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .console {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Simple Biometric Test</h1>
+
+    <div class="test-section">
+        <h2>Test Your Exact Issue</h2>
+        <p>This replicates your exact code:</p>
+        <pre><code>await NativeBiometric.setCredentials({
+  username: email,
+  password: password,
+  server: server,
+})</code></pre>
+
+        <input type="text" id="email" placeholder="Email" value="test@example.com">
+        <input type="password" id="password" placeholder="Password" value="password123">
+        <input type="text" id="server" placeholder="Server" value="example.com">
+
+        <button onclick="testSetCredentials()">Test setCredentials (Your Issue)</button>
+        <div id="test-result" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Other Tests</h2>
+        <button onclick="testAvailability()">Check Biometrics Available</button>
+        <button onclick="testAuthentication()">Test Authentication</button>
+        <button onclick="testGetCredentials()">Test Get Credentials</button>
+        <div id="other-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Output</h2>
+        <div id="console" class="console"></div>
+    </div>
+
+    <script type="module">
+        import { NativeBiometric, AuthenticationStrength } from '@capgo/capacitor-native-biometric';
+        import { SplashScreen } from '@capacitor/splash-screen';
+
+        // Override console to show logs
+        const originalLog = console.log;
+        const originalError = console.error;
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole('LOG', args);
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole('ERROR', args);
+        };
+
+        function addToConsole(type, args) {
+            const consoleDiv = document.getElementById('console');
+            const message = args.map(arg =>
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleDiv.innerHTML += `[${new Date().toLocaleTimeString()}] ${type}: ${message}\n`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        // Your exact function
+        async function setCredentials(email, password, server) {
+            try {
+                console.log(`Attempting to save credentials for ${email} on ${server}`);
+                await NativeBiometric.setCredentials({
+                    username: email,
+                    password: password,
+                    server: server,
+                });
+                console.log('✅ Credentials saved successfully!');
+                return true;
+            } catch (e) {
+                console.error('❌ Error saving credentials:', e);
+                console.error('Error message:', e.message);
+                console.error('Full error:', e);
+                return false;
+            }
+        }
+
+        // Test functions
+        window.testSetCredentials = async function() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const server = document.getElementById('server').value;
+
+            const resultDiv = document.getElementById('test-result');
+            resultDiv.style.display = 'none';
+
+            try {
+                const success = await setCredentials(email, password, server);
+                resultDiv.textContent = success ? '✅ SUCCESS: Credentials saved!' : '❌ FAILED: See console for details';
+                resultDiv.className = success ? 'result success' : 'result error';
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                resultDiv.textContent = `❌ ERROR: ${error.message}`;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+            }
+        };
+
+        window.testAvailability = async function() {
+            try {
+                console.log('Checking biometric availability...');
+                const result = await NativeBiometric.isAvailable();
+                console.log('Availability result:', result);
+
+                const div = document.createElement('div');
+                div.className = result.isAvailable ? 'result success' : 'result error';
+                div.textContent = result.isAvailable
+                    ? `✅ Biometrics Available: ${getAuthenticationStrengthName(result.authenticationStrength)}`
+                    : `❌ Biometrics Not Available (Error: ${result.errorCode})`;
+                document.getElementById('other-results').appendChild(div);
+            } catch (error) {
+                console.error('Availability check failed:', error);
+                const div = document.createElement('div');
+                div.className = 'result error';
+                div.textContent = `❌ Check failed: ${error.message}`;
+                document.getElementById('other-results').appendChild(div);
+            }
+        };
+
+        window.testAuthentication = async function() {
+            try {
+                console.log('Testing biometric authentication...');
+                await NativeBiometric.verifyIdentity({
+                    reason: 'Test authentication'
+                });
+                console.log('✅ Authentication successful!');
+
+                const div = document.createElement('div');
+                div.className = 'result success';
+                div.textContent = '✅ Authentication successful!';
+                document.getElementById('other-results').appendChild(div);
+            } catch (error) {
+                console.error('Authentication failed:', error);
+                const div = document.createElement('div');
+                div.className = 'result error';
+                div.textContent = `❌ Authentication failed: ${error.message}`;
+                document.getElementById('other-results').appendChild(div);
+            }
+        };
+
+        window.testGetCredentials = async function() {
+            const server = document.getElementById('server').value;
+            try {
+                console.log(`Getting credentials for ${server}...`);
+                const credentials = await NativeBiometric.getCredentials({ server });
+                console.log('Retrieved credentials:', credentials);
+
+                const div = document.createElement('div');
+                div.className = 'result success';
+                div.textContent = `✅ Retrieved: ${credentials.username} / ${credentials.password}`;
+                document.getElementById('other-results').appendChild(div);
+            } catch (error) {
+                console.error('Get credentials failed:', error);
+                const div = document.createElement('div');
+                div.className = 'result error';
+                div.textContent = `❌ Get failed: ${error.message}`;
+                document.getElementById('other-results').appendChild(div);
+            }
+        };
+
+        function getAuthenticationStrengthName(strength) {
+            const names = {
+                [AuthenticationStrength.NONE]: 'None',
+                [AuthenticationStrength.STRONG]: 'Strong',
+                [AuthenticationStrength.WEAK]: 'Weak'
+            };
+            return names[strength] || 'Unknown';
+        }
+
+        // Hide splash screen
+        SplashScreen.hide().catch(err => {
+            console.log('SplashScreen already hidden or not available:', err.message);
+        });
+
+        // Auto-run availability check
+        testAvailability();
+
+        console.log('🎯 Simple test loaded! Click "Test setCredentials" to reproduce your issue.');
+    </script>
+</body>
+</html>
