@@ -1,0 +1,38 @@
+{
+  "name": "capacitor-app",
+  "version": "1.0.0",
+  "description": "An Amazing Capacitor App",
+  "type": "module",
+  "keywords": [
+    "capacitor",
+    "mobile"
+  ],
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:biometric": "node test-issue.js",
+    "sync": "cap sync",
+    "sync:ios": "cap sync ios",
+    "sync:android": "cap sync android",
+    "rebuild:ios": "bun run build && bunx cap sync ios",
+    "rebuild:android": "bun run build && bunx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/camera": "^8.2.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capgo/capacitor-native-biometric": "file:../",
+    "@capgo/capacitor-updater": "^8.45.11"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "vite": "^7.3.1",
+    "typescript": "^5.9.3"
+  },
+  "author": "",
+  "license": "ISC"
+}

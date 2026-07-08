@@ -4,7 +4,7 @@
 
     <application>
         <activity
-            android:name="com.epicshaggy.biometric.AuthActivity"
+            android:name="ee.forgr.biometric.AuthActivity"
             android:label="@string/title_activity_auth_activity"
             android:theme="@style/AppTheme.Transparent"></activity>
     </application>
